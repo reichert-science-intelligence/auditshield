@@ -464,13 +464,11 @@ def server(input, output, session):
     rule_test_violations = reactive.Value(None)
 
     # ==================== PHASE 1 LOGIC ====================
+    # Run on startup (ignore_none=False so button value 0 triggers) and on refresh click.
+    # Cannot call Effect from another Effect - use single Effect with ignore_none=False.
 
     @reactive.Effect
-    def _():
-        load_provider_data()
-
-    @reactive.Effect
-    @reactive.event(input.refresh_data)
+    @reactive.event(input.refresh_data, ignore_none=False)
     def load_provider_data():
         lookback_months = int(input.lookback_period())
         specialty_filter = list(input.specialty_filter())
