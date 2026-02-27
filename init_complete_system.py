@@ -125,7 +125,7 @@ def initialize_complete_system():
     print("=" * 80)
     print("\nSystem Status:")
     print("   [OK] All database schemas installed")
-    print("   [OK] Demo data loaded (50 providers, 12+ months history)")
+    print("   [OK] Demo data loaded (10 providers, 6 months history)")
     print("   [OK] RADV audit created")
     print("   [OK] Validation rules deployed")
     print("   [OK] Dashboards configured")
@@ -193,12 +193,15 @@ def seed_comprehensive_demo_data(db):
         "History of lung cancer",
     ]
 
-    print("   Creating 50 providers with 12+ months of encounter history...")
+    # Reduced for HuggingFace free tier (was 50 providers, 15 months)
+    num_providers = 10
+    months_history = 6
+    print(f"   Creating {num_providers} providers with {months_history} months of encounter history...")
 
     param_placeholder = "%s" if db.db_type == "postgresql" else "?"
 
     # Create providers
-    for i in range(50):
+    for i in range(num_providers):
         provider_id = f"PRV{i+1:04d}"
         provider_name = f"Dr. {fake.last_name()}, {fake.first_name()}"
         specialty = random.choice(specialties)
@@ -236,9 +239,8 @@ def seed_comprehensive_demo_data(db):
         else:  # 30% struggling performers
             pass_rate = random.uniform(0.60, 0.80)
 
-        # Generate encounters across 12+ months (we'll create 15 months for good measure)
-        months_history = 15
-        encounters_per_month = random.randint(10, 20)
+        # Generate encounters (reduced for HuggingFace resource limits)
+        encounters_per_month = random.randint(10, 15)
 
         for month_offset in range(months_history):
             for _ in range(encounters_per_month):
@@ -335,13 +337,14 @@ def seed_comprehensive_demo_data(db):
         # Update provider scores
         db.update_provider_scores(provider_id, lookback_months=12)
 
-        if (i + 1) % 10 == 0:
-            print(f"   Progress: {i + 1}/50 providers created")
+        if (i + 1) % 5 == 0 or (i + 1) == num_providers:
+            print(f"   Progress: {i + 1}/{num_providers} providers created")
 
+    total_encounters = num_providers * months_history * 12  # ~12 avg encounters/month
     print("   [OK] Demo data seeding complete!")
-    print(f"      - 50 providers")
-    print(f"      - 15 months of encounter history")
-    print(f"      - ~{50 * 15 * 15:,} total encounters")
+    print(f"      - {num_providers} providers")
+    print(f"      - {months_history} months of encounter history")
+    print(f"      - ~{total_encounters:,} total encounters")
 
 
 def validate_system(db):

@@ -21,7 +21,7 @@ license: mit
 
 **First-time initialization takes ~60 seconds** as the system:
 - Creates database schema
-- Seeds 15 months of demo data (50 providers, ~11,250 encounters)
+- Seeds 6 months of demo data (10 providers, ~900 encounters)
 - Generates compliance forecasts
 - Creates RADV audit scenarios
 
@@ -114,7 +114,7 @@ Machine learning model with 95% confidence intervals:
 
 - **50 Providers** across 6 specialties
 - **15 Months** of encounter history
-- **~11,250 Encounters** with realistic validation patterns
+- **~900 Encounters** with realistic validation patterns
 - **100-Enrollee RADV Audit** with full workflow
 - **Performance Distribution**: 30% high, 40% medium, 30% struggling (realistic)
 

@@ -1058,6 +1058,46 @@ compliance automation.
 
 ## Updating Dependencies
 
+### Push from clean-final Branch
+
+**When on `clean-final` branch** (e.g. after Anthropic version update):
+
+```powershell
+cd C:\Users\reich\Projects\HEDIS-MA-Top-12-w-HEI-Prep\Artifacts\project\auditshield
+
+git add requirements.txt
+git commit -m "Update Anthropic to v0.39.0 to fix proxies error"
+git push space clean-final:main --force
+```
+
+**Note:** Use `clean-final:main` to push local `clean-final` branch to remote `main`.
+
+**What you'll see:**
+```
+[clean-final abc123] Update Anthropic to v0.39.0...
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+To https://huggingface.co/spaces/rreichert/auditshield-live
+   72a2990...def456 clean-final -> main
+```
+
+**After push:** Monitor build (~10 min) at https://huggingface.co/spaces/rreichert/auditshield-live → Check Logs for initialization steps → No more proxies error.
+
+### Reduce Demo Data (If Stuck at Step 4 - Seeding)
+
+**Problem:** 50 providers × 15 months × 15 encounters = 11,250 records is too heavy for HuggingFace free tier. Container hits memory/time limits.
+
+**Solution:** `init_complete_system.py` uses reduced defaults (10 providers, 6 months, ~900 encounters) for faster initialization (~15 sec instead of 2+ min). If you need to reduce further, edit `num_providers` and `months_history` at top of `seed_comprehensive_demo_data()`.
+
+```powershell
+git add init_complete_system.py
+git commit -m "Reduce demo data for faster HuggingFace initialization"
+git push space clean-final:main --force
+```
+
+---
+
+### Add Missing Package
+
 When you need to add a missing package and redeploy:
 
 ```bash
