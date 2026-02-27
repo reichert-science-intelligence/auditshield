@@ -89,9 +89,24 @@ app_ui = ui.page_fluid(
             .chart-recommended { background: #d4edda; border-left: 3px solid #28a745; }
             .chart-backup { background: #fff3cd; border-left: 3px solid #ffc107; }
             .chart-reject { background: #f8d7da; border-left: 3px solid #dc3545; }
+            .demo-banner { background: #fff3cd; border: 2px solid #ffc107; padding: 10px 20px; margin: 10px 0; border-radius: 5px; text-align: center; font-weight: bold; }
+        """),
+        ui.tags.script("""
+            document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('.nav-link, [role="tab"]').forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        var collapse = document.querySelector('.navbar-collapse');
+                        if (collapse && collapse.classList.contains('show')) {
+                            collapse.classList.remove('show');
+                        }
+                    });
+                });
+            });
         """)
     ),
-
+    ui.div(
+        ui.div("DEMO MODE: All data shown is synthetic and generated for demonstration purposes only", class_="demo-banner"),
+    ),
     ui.page_navbar(
         # ==================== PHASE 1 TABS ====================
 
@@ -558,7 +573,7 @@ def server(input, output, session):
             fig.add_hline(y=90, line_dash="dash", line_color="green", annotation_text="Green (90%)")
             fig.add_hline(y=80, line_dash="dash", line_color="orange", annotation_text="Yellow (80%)")
             fig.update_layout(height=500, hovermode='closest')
-        return ui.HTML(fig.to_html(include_plotlyjs='cdn'))
+        return ui.HTML(fig.to_html(include_plotlyjs=True))
 
     @output
     @render.data_frame
@@ -618,7 +633,7 @@ def server(input, output, session):
                 else:
                     fig = px.bar(failure_data.head(10), x='occurrence_count', y='failure_category', orientation='h')
                     fig.update_layout(height=400, showlegend=False)
-        return ui.HTML(fig.to_html(include_plotlyjs='cdn'))
+        return ui.HTML(fig.to_html(include_plotlyjs=True))
 
     @output
     @render.ui
@@ -635,7 +650,7 @@ def server(input, output, session):
                 meat_data = db.get_meat_element_breakdown(provider_id, int(input.lookback_period()))
                 fig = px.bar(meat_data, x='element', y='compliance_rate', color='compliance_rate', color_continuous_scale='RdYlGn', range_color=[0, 100])
                 fig.update_layout(height=400, showlegend=False)
-        return ui.HTML(fig.to_html(include_plotlyjs='cdn'))
+        return ui.HTML(fig.to_html(include_plotlyjs=True))
 
     @output
     @render.download(filename=lambda: f"scorecard_{datetime.now().strftime('%Y%m%d')}.xlsx")
@@ -690,7 +705,7 @@ def server(input, output, session):
             df = pd.DataFrame(list(categories.items()), columns=['Category', 'RAF Weight'])
             fig = px.bar(df, x='RAF Weight', y='Category', orientation='h', title="High-Risk HCC Categories")
             fig.update_layout(height=400)
-        return ui.HTML(fig.to_html(include_plotlyjs='cdn'))
+        return ui.HTML(fig.to_html(include_plotlyjs=True))
 
     # Financial Impact
     @output
@@ -748,7 +763,7 @@ def server(input, output, session):
         fig.add_trace(go.Bar(x=results['scenario'], y=results['risk_reduction'], name='Risk Reduction'), row=1, col=1)
         fig.add_trace(go.Bar(x=results['scenario'], y=results['roi_percentage'], name='ROI %'), row=1, col=2)
         fig.update_layout(height=400, showlegend=False)
-        return ui.HTML(fig.to_html(include_plotlyjs='cdn'))
+        return ui.HTML(fig.to_html(include_plotlyjs=True))
 
     # ==================== PHASE 2 LOGIC ====================
 
@@ -856,7 +871,7 @@ def server(input, output, session):
                 df = pd.DataFrame(list(status['enrollee_status'].items()), columns=['Status', 'Count'])
                 fig = px.pie(df, values='Count', names='Status', title='Record Request Status')
                 fig.update_layout(height=400)
-        return ui.HTML(fig.to_html(include_plotlyjs='cdn'))
+        return ui.HTML(fig.to_html(include_plotlyjs=True))
 
     # Chart Selection AI
     @reactive.Effect
@@ -872,7 +887,7 @@ def server(input, output, session):
             ui.update_select("enrollee_selector", choices=choices)
 
     @reactive.Effect
-    @reactive.event(input.score_charts)
+    @reactive.event(input.score_charts, ignore_none=False)
     def score_enrollee_charts():
         if not input.enrollee_selector() or not input.selected_audit_charts():
             return
@@ -890,7 +905,7 @@ def server(input, output, session):
         chart_scores.set(scores)
 
     @reactive.Effect
-    @reactive.event(input.get_all_recommendations)
+    @reactive.event(input.get_all_recommendations, ignore_none=False)
     def get_all_chart_recommendations():
         if not input.selected_audit_charts():
             return
@@ -950,7 +965,7 @@ def server(input, output, session):
         return ui.div(ui.h3(str(data.get('completed_sessions', 0))), ui.p("Completed Sessions"), class_="metric-card")
 
     @reactive.Effect
-    @reactive.event(input.identify_tpe_providers)
+    @reactive.event(input.identify_tpe_providers, ignore_none=False)
     def identify_tpe_providers_action():
         providers = educator.identify_providers_for_tpe(min_failures=5, lookback_months=6)
         tpe_providers.set(providers)
@@ -1007,7 +1022,7 @@ def server(input, output, session):
             fig.add_trace(go.Scatter(x=df.index, y=df['pre_session_validation_rate'], mode='lines+markers', name='Pre-Training'))
             fig.add_trace(go.Scatter(x=df.index, y=df['post_session_validation_rate'], mode='lines+markers', name='Post-Training'))
             fig.update_layout(title="Training Effectiveness (Pre vs Post Validation Rates)", xaxis_title="Session", yaxis_title="Validation Rate (%)", height=400)
-        return ui.HTML(fig.to_html(include_plotlyjs='cdn'))
+        return ui.HTML(fig.to_html(include_plotlyjs=True))
 
     # ==================== PHASE 3 LOGIC ====================
 
@@ -1130,7 +1145,7 @@ def server(input, output, session):
         )
 
     @reactive.Effect
-    @reactive.event(input.run_reconciliation)
+    @reactive.event(input.run_reconciliation, ignore_none=False)
     def run_reconciliation_action():
         lookback = int(input.recon_lookback())
         results = reconciler.run_comprehensive_reconciliation(lookback_months=lookback, min_confidence=85.0)
@@ -1191,7 +1206,7 @@ def server(input, output, session):
 
     # Compliance Forecast
     @reactive.Effect
-    @reactive.event(input.generate_forecast)
+    @reactive.event(input.generate_forecast, ignore_none=False)
     def generate_forecast_action():
         periods = int(input.forecast_periods() or 12)
         conf = float(input.forecast_confidence() or 0.95)
@@ -1240,7 +1255,7 @@ def server(input, output, session):
             ))
             fig.add_hline(y=95, line_dash="dash", line_color="green", annotation_text="Target (95%)")
             fig.update_layout(title="12-Month Compliance Forecast", xaxis_title="Period", yaxis_title="Validation Rate (%)", height=500)
-        return ui.HTML(fig.to_html(include_plotlyjs='cdn'))
+        return ui.HTML(fig.to_html(include_plotlyjs=True))
 
     @output
     @render.ui
@@ -1277,7 +1292,7 @@ def server(input, output, session):
         return ui.div(ui.h3(str(dash.get("unprocessed_updates", 0))), ui.p("Unprocessed"), class_="metric-card")
 
     @reactive.Effect
-    @reactive.event(input.scan_regulatory)
+    @reactive.event(input.scan_regulatory, ignore_none=False)
     def scan_regulatory_action():
         reg_intel.scan_regulatory_sources(days_back=30)
         regulatory_updates.set(reg_intel.get_unprocessed_updates())
@@ -1409,7 +1424,7 @@ def server(input, output, session):
             colors = {"GREEN": "#28a745", "YELLOW": "#ffc107", "RED": "#dc3545"}
             fig = px.bar(x=tiers, y=counts, labels={"x": "Risk Tier", "y": "Provider Count"}, title="Provider Risk Distribution", color=tiers, color_discrete_map=colors)
             fig.update_layout(height=400, showlegend=False)
-        return ui.HTML(fig.to_html(include_plotlyjs='cdn'))
+        return ui.HTML(fig.to_html(include_plotlyjs=True))
 
     @output
     @render.ui
@@ -1422,7 +1437,7 @@ def server(input, output, session):
             fig = px.line(df, x="forecast_period", y="predicted_validation_rate", title="6-Month Compliance Forecast", labels={"forecast_period": "Period", "predicted_validation_rate": "Validation Rate (%)"})
             fig.add_hline(y=95, line_dash="dash", line_color="green")
             fig.update_layout(height=400)
-        return ui.HTML(fig.to_html(include_plotlyjs='cdn'))
+        return ui.HTML(fig.to_html(include_plotlyjs=True))
 
     @output
     @render.ui
