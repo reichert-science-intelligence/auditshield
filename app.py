@@ -13,6 +13,18 @@ from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
 import json
 
+
+def _fmt_date(s):
+    """Format date for display as MM/DD/YYYY (American format)."""
+    if s is None or (isinstance(s, float) and pd.isna(s)):
+        return ""
+    s = str(s)[:10]
+    try:
+        dt = datetime.strptime(s, "%Y-%m-%d")
+        return dt.strftime("%m/%d/%Y")
+    except (ValueError, TypeError):
+        return s
+
 # Phase 1 Imports
 from meat_validator import MEATValidator
 from database import get_db_manager
@@ -121,7 +133,7 @@ app_ui = ui.page_fluid(
                         ui.column(3, ui.output_ui("metric_compliant_pct"))
                     ),
                     ui.hr(),
-                    ui.card(ui.card_header("Provider Risk Distribution"), ui.output_plot("risk_scatter_plot")),
+                    ui.card(ui.card_header("Provider Risk Distribution"), ui.output_ui("risk_scatter_plot")),
                     ui.hr(),
                     ui.card(
                         ui.card_header(
@@ -185,7 +197,7 @@ app_ui = ui.page_fluid(
                     ui.output_ui("roi_results")
                 ),
                 ui.hr(),
-                ui.card(ui.card_header("Scenario Comparison"), ui.output_plot("scenario_chart"))
+                ui.card(ui.card_header("Scenario Comparison"), ui.output_ui("scenario_chart"))
             )
         ),
 
@@ -273,7 +285,7 @@ app_ui = ui.page_fluid(
                 ui.hr(),
                 ui.card(
                     ui.card_header("Education Effectiveness"),
-                    ui.output_plot("education_effectiveness_chart")
+                    ui.output_ui("education_effectiveness_chart")
                 )
             )
         ),
@@ -353,7 +365,7 @@ app_ui = ui.page_fluid(
                 ui.hr(),
                 ui.card(
                     ui.card_header("Validation Rate Forecast"),
-                    ui.output_plot("forecast_chart")
+                    ui.output_ui("forecast_chart")
                 ),
                 ui.hr(),
                 ui.card(
@@ -426,8 +438,8 @@ app_ui = ui.page_fluid(
                 ),
                 ui.hr(),
                 ui.row(
-                    ui.column(6, ui.card(ui.card_header("Provider Risk Distribution"), ui.output_plot("exec_risk_chart"))),
-                    ui.column(6, ui.card(ui.card_header("Compliance Forecast"), ui.output_plot("exec_forecast_chart")))
+                    ui.column(6, ui.card(ui.card_header("Provider Risk Distribution"), ui.output_ui("exec_risk_chart"))),
+                    ui.column(6, ui.card(ui.card_header("Compliance Forecast"), ui.output_ui("exec_forecast_chart")))
                 ),
                 ui.hr(),
                 ui.card(
@@ -534,18 +546,19 @@ def server(input, output, session):
         return ui.div(ui.h3(f"{green_pct:.0f}%"), ui.p("Compliant Providers"), ui.p(f"{delta:+.0f}% vs benchmark", class_=f"{delta_class} small"), class_="metric-card")
 
     @output
-    @render.plot
+    @render.ui
     def risk_scatter_plot():
         df = provider_scores_data.get()
         if df.empty:
-            return go.Figure()
-        color_map = {'GREEN': '#28a745', 'YELLOW': '#ffc107', 'RED': '#dc3545'}
-        fig = px.scatter(df, x='total_hccs_submitted', y='validation_rate', color='risk_tier', size='financial_risk_estimate',
-                        hover_data=['provider_name', 'specialty', 'top_failure_reason'], color_discrete_map=color_map)
-        fig.add_hline(y=90, line_dash="dash", line_color="green", annotation_text="Green (90%)")
-        fig.add_hline(y=80, line_dash="dash", line_color="orange", annotation_text="Yellow (80%)")
-        fig.update_layout(height=500, hovermode='closest')
-        return fig
+            fig = go.Figure()
+        else:
+            color_map = {'GREEN': '#28a745', 'YELLOW': '#ffc107', 'RED': '#dc3545'}
+            fig = px.scatter(df, x='total_hccs_submitted', y='validation_rate', color='risk_tier', size='financial_risk_estimate',
+                            hover_data=['provider_name', 'specialty', 'top_failure_reason'], color_discrete_map=color_map)
+            fig.add_hline(y=90, line_dash="dash", line_color="green", annotation_text="Green (90%)")
+            fig.add_hline(y=80, line_dash="dash", line_color="orange", annotation_text="Yellow (80%)")
+            fig.update_layout(height=500, hovermode='closest')
+        return ui.HTML(fig.to_html(include_plotlyjs='cdn'))
 
     @output
     @render.data_frame
@@ -581,49 +594,48 @@ def server(input, output, session):
             ),
             ui.hr(),
             ui.row(
-                ui.column(6, ui.h5("Failure Patterns"), ui.output_plot("failure_pattern_chart")),
-                ui.column(6, ui.h5("M.E.A.T. Compliance"), ui.output_plot("meat_element_chart"))
+                ui.column(6, ui.h5("Failure Patterns"), ui.output_ui("failure_pattern_chart")),
+                ui.column(6, ui.h5("M.E.A.T. Compliance"), ui.output_ui("meat_element_chart"))
             ),
             class_="provider-detail"
         )
 
     @output
-    @render.plot
+    @render.ui
     def failure_pattern_chart():
         selected = input.selected_provider()
         if not selected:
-            return go.Figure()
-        df = provider_scores_data.get()
-        if df.empty:
-            return go.Figure()
-        matches = df[df['provider_name'] == selected]
-        if matches.empty:
-            return go.Figure()
-        provider_id = matches.iloc[0]['provider_id']
-        failure_data = db.get_provider_failure_patterns(provider_id, int(input.lookback_period()))
-        if failure_data.empty:
-            return go.Figure().add_annotation(text="No failures", showarrow=False)
-        fig = px.bar(failure_data.head(10), x='occurrence_count', y='failure_category', orientation='h')
-        fig.update_layout(height=400, showlegend=False)
-        return fig
+            fig = go.Figure()
+        else:
+            df = provider_scores_data.get()
+            if df.empty or (matches := df[df['provider_name'] == selected]).empty:
+                fig = go.Figure()
+            else:
+                provider_id = matches.iloc[0]['provider_id']
+                failure_data = db.get_provider_failure_patterns(provider_id, int(input.lookback_period()))
+                if failure_data.empty:
+                    fig = go.Figure().add_annotation(text="No failures", showarrow=False)
+                else:
+                    fig = px.bar(failure_data.head(10), x='occurrence_count', y='failure_category', orientation='h')
+                    fig.update_layout(height=400, showlegend=False)
+        return ui.HTML(fig.to_html(include_plotlyjs='cdn'))
 
     @output
-    @render.plot
+    @render.ui
     def meat_element_chart():
         selected = input.selected_provider()
         if not selected:
-            return go.Figure()
-        df = provider_scores_data.get()
-        if df.empty:
-            return go.Figure()
-        matches = df[df['provider_name'] == selected]
-        if matches.empty:
-            return go.Figure()
-        provider_id = matches.iloc[0]['provider_id']
-        meat_data = db.get_meat_element_breakdown(provider_id, int(input.lookback_period()))
-        fig = px.bar(meat_data, x='element', y='compliance_rate', color='compliance_rate', color_continuous_scale='RdYlGn', range_color=[0, 100])
-        fig.update_layout(height=400, showlegend=False)
-        return fig
+            fig = go.Figure()
+        else:
+            df = provider_scores_data.get()
+            if df.empty or (matches := df[df['provider_name'] == selected]).empty:
+                fig = go.Figure()
+            else:
+                provider_id = matches.iloc[0]['provider_id']
+                meat_data = db.get_meat_element_breakdown(provider_id, int(input.lookback_period()))
+                fig = px.bar(meat_data, x='element', y='compliance_rate', color='compliance_rate', color_continuous_scale='RdYlGn', range_color=[0, 100])
+                fig.update_layout(height=400, showlegend=False)
+        return ui.HTML(fig.to_html(include_plotlyjs='cdn'))
 
     @output
     @render.download(filename=lambda: f"scorecard_{datetime.now().strftime('%Y%m%d')}.xlsx")
@@ -664,20 +676,21 @@ def server(input, output, session):
             ui.hr(),
             ui.div(ui.h4(f"Status: {financial.get('severity', '')} RISK"), ui.p(f"Error rate {financial.get('error_rate', 0)}% triggers {financial.get('penalty_multiplier', 1)}x penalty"), class_=severity_class) if severity_class else ui.div(),
             ui.card(ui.card_header("Recommendations"), ui.tags.ul(*[ui.tags.li(rec) for rec in summary.get('recommendations', [])])),
-            ui.card(ui.card_header("Top Failure Categories"), ui.output_plot("audit_failure_categories"))
+            ui.card(ui.card_header("Top Failure Categories"), ui.output_ui("audit_failure_categories"))
         )
 
     @output
-    @render.plot
+    @render.ui
     def audit_failure_categories():
         results = mock_audit_results.get()
         if not results or not results.get('audit_summary', {}).get('top_failure_categories'):
-            return go.Figure()
-        categories = results['audit_summary']['top_failure_categories']
-        df = pd.DataFrame(list(categories.items()), columns=['Category', 'RAF Weight'])
-        fig = px.bar(df, x='RAF Weight', y='Category', orientation='h', title="High-Risk HCC Categories")
-        fig.update_layout(height=400)
-        return fig
+            fig = go.Figure()
+        else:
+            categories = results['audit_summary']['top_failure_categories']
+            df = pd.DataFrame(list(categories.items()), columns=['Category', 'RAF Weight'])
+            fig = px.bar(df, x='RAF Weight', y='Category', orientation='h', title="High-Risk HCC Categories")
+            fig.update_layout(height=400)
+        return ui.HTML(fig.to_html(include_plotlyjs='cdn'))
 
     # Financial Impact
     @output
@@ -721,7 +734,7 @@ def server(input, output, session):
         )
 
     @output
-    @render.plot
+    @render.ui
     def scenario_chart():
         exposure = calc.calculate_current_exposure(lookback_months=int(input.lookback_period()))
         scenarios = [
@@ -735,7 +748,7 @@ def server(input, output, session):
         fig.add_trace(go.Bar(x=results['scenario'], y=results['risk_reduction'], name='Risk Reduction'), row=1, col=1)
         fig.add_trace(go.Bar(x=results['scenario'], y=results['roi_percentage'], name='ROI %'), row=1, col=2)
         fig.update_layout(height=400, showlegend=False)
-        return fig
+        return ui.HTML(fig.to_html(include_plotlyjs='cdn'))
 
     # ==================== PHASE 2 LOGIC ====================
 
@@ -809,7 +822,7 @@ def server(input, output, session):
             ui.div(
                 ui.row(
                     ui.column(6, ui.h3(f"{status['audit_notice_id']}"), ui.p(f"{status['contract_name']} - {status['audit_year']}", class_="text-muted")),
-                    ui.column(6, ui.div(ui.div(f"{status['days_remaining']}", class_="countdown-timer"), ui.p("Days Remaining", class_="text-center"), ui.p(f"Due: {status['due_date']}", class_="text-center text-muted"), class_="text-center"))
+                    ui.column(6, ui.div(ui.div(f"{status['days_remaining']}", class_="countdown-timer"), ui.p("Days Remaining", class_="text-center"), ui.p(f"Due: {_fmt_date(status['due_date'])}", class_="text-center text-muted"), class_="text-center"))
                 ),
                 class_=f"{status_class} p-3 mb-3 rounded"
             ),
@@ -822,26 +835,28 @@ def server(input, output, session):
             ui.hr(),
             ui.card(
                 ui.card_header("Overdue Tasks") if status['overdue_tasks'] else ui.card_header("No Overdue Tasks"),
-                ui.div(*[ui.div(ui.p(f"{task['task_name']}", class_="font-weight-bold"), ui.p(f"Due: {task['due_date']} | Priority: {task['priority']}", class_="small text-muted"), class_="task-overdue") for task in status['overdue_tasks']]) if status['overdue_tasks'] else ui.p("All tasks on schedule", class_="text-success")
+                ui.div(*[ui.div(ui.p(f"{task['task_name']}", class_="font-weight-bold"), ui.p(f"Due: {_fmt_date(task['due_date'])} | Priority: {task['priority']}", class_="small text-muted"), class_="task-overdue") for task in status['overdue_tasks']]) if status['overdue_tasks'] else ui.p("All tasks on schedule", class_="text-success")
             ),
             ui.hr(),
-            ui.card(ui.card_header("Enrollee Status Breakdown"), ui.output_plot("enrollee_status_chart"))
+            ui.card(ui.card_header("Enrollee Status Breakdown"), ui.output_ui("enrollee_status_chart"))
         )
 
     @output
-    @render.plot
+    @render.ui
     def enrollee_status_chart():
         sel = input.selected_audit()
         if not sel:
-            return go.Figure()
-        audit_id = int(sel)
-        status = command_center.get_audit_status(audit_id)
-        if not status or not status.get('enrollee_status'):
-            return go.Figure()
-        df = pd.DataFrame(list(status['enrollee_status'].items()), columns=['Status', 'Count'])
-        fig = px.pie(df, values='Count', names='Status', title='Record Request Status')
-        fig.update_layout(height=400)
-        return fig
+            fig = go.Figure()
+        else:
+            audit_id = int(sel)
+            status = command_center.get_audit_status(audit_id)
+            if not status or not status.get('enrollee_status'):
+                fig = go.Figure()
+            else:
+                df = pd.DataFrame(list(status['enrollee_status'].items()), columns=['Status', 'Count'])
+                fig = px.pie(df, values='Count', names='Status', title='Record Request Status')
+                fig.update_layout(height=400)
+        return ui.HTML(fig.to_html(include_plotlyjs='cdn'))
 
     # Chart Selection AI
     @reactive.Effect
@@ -892,7 +907,7 @@ def server(input, output, session):
         results = []
         for _, row in scores.iterrows():
             recommendation_class = {'SUBMIT_FIRST': 'chart-recommended', 'SUBMIT_BACKUP': 'chart-backup', 'DO_NOT_SUBMIT': 'chart-reject'}.get(row.get('recommendation', 'SUBMIT_BACKUP'), '')
-            display_date = row.get('encounter_date', row.get('enrollee_name', 'Unknown'))
+            display_date = _fmt_date(row.get('encounter_date')) or row.get('enrollee_name', 'Unknown')
             results.append(ui.div(
                 ui.row(
                     ui.column(8, ui.h5(f"Encounter: {display_date}" if 'encounter_date' in row else f"Enrollee: {display_date}"), ui.p(f"Provider: {row.get('provider_id', 'Unknown')}", class_="text-muted"), ui.p(f"Score: {row.get('overall_score', 0):.1f}/100", class_="font-weight-bold")),
@@ -976,7 +991,7 @@ def server(input, output, session):
         return ui.div()
 
     @output
-    @render.plot
+    @render.ui
     def education_effectiveness_chart():
         results = db.execute_query("""
             SELECT provider_id, pre_session_validation_rate, post_session_validation_rate, completed_date
@@ -985,13 +1000,14 @@ def server(input, output, session):
             ORDER BY completed_date DESC LIMIT 20
         """, (), fetch="all")
         if not results:
-            return go.Figure().add_annotation(text="No completed sessions yet", showarrow=False)
-        df = pd.DataFrame(results)
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=df.index, y=df['pre_session_validation_rate'], mode='lines+markers', name='Pre-Training'))
-        fig.add_trace(go.Scatter(x=df.index, y=df['post_session_validation_rate'], mode='lines+markers', name='Post-Training'))
-        fig.update_layout(title="Training Effectiveness (Pre vs Post Validation Rates)", xaxis_title="Session", yaxis_title="Validation Rate (%)", height=400)
-        return fig
+            fig = go.Figure().add_annotation(text="No completed sessions yet", showarrow=False)
+        else:
+            df = pd.DataFrame(results)
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=df.index, y=df['pre_session_validation_rate'], mode='lines+markers', name='Pre-Training'))
+            fig.add_trace(go.Scatter(x=df.index, y=df['post_session_validation_rate'], mode='lines+markers', name='Post-Training'))
+            fig.update_layout(title="Training Effectiveness (Pre vs Post Validation Rates)", xaxis_title="Session", yaxis_title="Validation Rate (%)", height=400)
+        return ui.HTML(fig.to_html(include_plotlyjs='cdn'))
 
     # ==================== PHASE 3 LOGIC ====================
 
@@ -1201,29 +1217,30 @@ def server(input, output, session):
         )
 
     @output
-    @render.plot
+    @render.ui
     def forecast_chart():
         data = forecast_data.get()
         if not data or data.get("error") or not data.get("forecasts"):
-            return go.Figure().add_annotation(text="Generate forecast first", showarrow=False)
-        df = pd.DataFrame(data["forecasts"])
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            x=df["forecast_period"], y=df["predicted_validation_rate"],
-            mode="lines+markers", name="Predicted Validation Rate", line=dict(color="blue")
-        ))
-        fig.add_trace(go.Scatter(
-            x=df["forecast_period"], y=df["confidence_interval_high"],
-            mode="lines", name="Upper Bound", line=dict(width=0), showlegend=False
-        ))
-        fig.add_trace(go.Scatter(
-            x=df["forecast_period"], y=df["confidence_interval_low"],
-            mode="lines", fill="tonexty", name="Lower Bound",
-            line=dict(width=0), fillcolor="rgba(0,100,255,0.2)", showlegend=False
-        ))
-        fig.add_hline(y=95, line_dash="dash", line_color="green", annotation_text="Target (95%)")
-        fig.update_layout(title="12-Month Compliance Forecast", xaxis_title="Period", yaxis_title="Validation Rate (%)", height=500)
-        return fig
+            fig = go.Figure().add_annotation(text="Generate forecast first", showarrow=False)
+        else:
+            df = pd.DataFrame(data["forecasts"])
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(
+                x=df["forecast_period"], y=df["predicted_validation_rate"],
+                mode="lines+markers", name="Predicted Validation Rate", line=dict(color="blue")
+            ))
+            fig.add_trace(go.Scatter(
+                x=df["forecast_period"], y=df["confidence_interval_high"],
+                mode="lines", name="Upper Bound", line=dict(width=0), showlegend=False
+            ))
+            fig.add_trace(go.Scatter(
+                x=df["forecast_period"], y=df["confidence_interval_low"],
+                mode="lines", fill="tonexty", name="Lower Bound",
+                line=dict(width=0), fillcolor="rgba(0,100,255,0.2)", showlegend=False
+            ))
+            fig.add_hline(y=95, line_dash="dash", line_color="green", annotation_text="Target (95%)")
+            fig.update_layout(title="12-Month Compliance Forecast", xaxis_title="Period", yaxis_title="Validation Rate (%)", height=500)
+        return ui.HTML(fig.to_html(include_plotlyjs='cdn'))
 
     @output
     @render.ui
@@ -1276,9 +1293,9 @@ def server(input, output, session):
             impact_class = {"HIGH": "audit-critical", "MEDIUM": "audit-warning", "LOW": ""}.get(u.get("impact_level", ""), "")
             items.append(ui.div(
                 ui.h5(u.get("title", "Untitled")),
-                ui.p(f"Source: {u.get('source', '')} | Date: {u.get('update_date', '')} | Impact: {u.get('impact_level', 'N/A')}", class_="small text-muted"),
+                ui.p(f"Source: {u.get('source', '')} | Date: {_fmt_date(u.get('update_date', ''))} | Impact: {u.get('impact_level', 'N/A')}", class_="small text-muted"),
                 ui.p(u.get("summary", "")),
-                ui.p(f"Implementation: {u.get('implementation_date', '')}", class_="small"),
+                ui.p(f"Implementation: {_fmt_date(u.get('implementation_date', ''))}", class_="small"),
                 ui.tags.a("View Details", href=u.get("url", "#"), target="_blank", class_="btn btn-sm btn-outline-primary") if u.get("url") else ui.div(),
                 class_=f"p-3 mb-3 rounded {impact_class}"
             ))
@@ -1380,30 +1397,32 @@ def server(input, output, session):
         )
 
     @output
-    @render.plot
+    @render.ui
     def exec_risk_chart():
         data = dashboard_mgr.get_executive_dashboard_data()
         risk_dist = data.get("provider_risk_distribution", {})
         if not risk_dist:
-            return go.Figure().add_annotation(text="No provider data", showarrow=False)
-        tiers = list(risk_dist.keys())
-        counts = [risk_dist[t].get("provider_count", 0) for t in tiers]
-        colors = {"GREEN": "#28a745", "YELLOW": "#ffc107", "RED": "#dc3545"}
-        fig = px.bar(x=tiers, y=counts, labels={"x": "Risk Tier", "y": "Provider Count"}, title="Provider Risk Distribution", color=tiers, color_discrete_map=colors)
-        fig.update_layout(height=400, showlegend=False)
-        return fig
+            fig = go.Figure().add_annotation(text="No provider data", showarrow=False)
+        else:
+            tiers = list(risk_dist.keys())
+            counts = [risk_dist[t].get("provider_count", 0) for t in tiers]
+            colors = {"GREEN": "#28a745", "YELLOW": "#ffc107", "RED": "#dc3545"}
+            fig = px.bar(x=tiers, y=counts, labels={"x": "Risk Tier", "y": "Provider Count"}, title="Provider Risk Distribution", color=tiers, color_discrete_map=colors)
+            fig.update_layout(height=400, showlegend=False)
+        return ui.HTML(fig.to_html(include_plotlyjs='cdn'))
 
     @output
-    @render.plot
+    @render.ui
     def exec_forecast_chart():
         forecast_dash = forecaster.get_forecast_dashboard()
         if forecast_dash.get("status") == "NO_FORECAST_AVAILABLE" or not forecast_dash.get("forecasts"):
-            return go.Figure().add_annotation(text="No forecast data", showarrow=False)
-        df = pd.DataFrame(forecast_dash["forecasts"])
-        fig = px.line(df, x="forecast_period", y="predicted_validation_rate", title="6-Month Compliance Forecast", labels={"forecast_period": "Period", "predicted_validation_rate": "Validation Rate (%)"})
-        fig.add_hline(y=95, line_dash="dash", line_color="green")
-        fig.update_layout(height=400)
-        return fig
+            fig = go.Figure().add_annotation(text="No forecast data", showarrow=False)
+        else:
+            df = pd.DataFrame(forecast_dash["forecasts"])
+            fig = px.line(df, x="forecast_period", y="predicted_validation_rate", title="6-Month Compliance Forecast", labels={"forecast_period": "Period", "predicted_validation_rate": "Validation Rate (%)"})
+            fig.add_hline(y=95, line_dash="dash", line_color="green")
+            fig.update_layout(height=400)
+        return ui.HTML(fig.to_html(include_plotlyjs='cdn'))
 
     @output
     @render.ui
