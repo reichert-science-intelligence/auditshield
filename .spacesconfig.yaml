@@ -1,0 +1,14 @@
+# .spacesconfig.yaml
+# HuggingFace Spaces configuration
+
+sdk: docker
+sdk_version: python3.11
+
+# App will run on port 7860 (default) or whatever PORT env var is set to
+app_port: 7860
+
+# Suggested hardware
+suggested_hardware: cpu-basic
+
+# Timeout for initialization (3 minutes)
+startup_duration_timeout: 3m

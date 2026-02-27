@@ -1,0 +1,12 @@
+﻿*.db
+*.db-shm
+*.db-wal
+*.bak
+__pycache__/
+*.py[cod]
+*.class
+.env
+.env.local
+.DS_Store
+Thumbs.db
+.coverage
