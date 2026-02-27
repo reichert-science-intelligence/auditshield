@@ -20,8 +20,8 @@ class ChartSelectionAI:
     def __init__(self):
         self.db = get_db_manager()
         try:
-            from anthropic import Anthropic
-            self.client = Anthropic()
+            from app_config import get_anthropic_client
+            self.client = get_anthropic_client()
         except ImportError:
             self.client = None
         self.model = "claude-sonnet-4-20250514"

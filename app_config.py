@@ -8,6 +8,20 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def get_anthropic_client(api_key=None):
+    """
+    Get Anthropic client without proxies parameter.
+    HuggingFace Spaces sets HTTP_PROXY/HTTPS_PROXY which causes
+    TypeError with httpx 0.28+ (proxies kwarg removed). Using
+    trust_env=False avoids reading proxy env vars.
+    """
+    import httpx
+    from anthropic import Anthropic
+
+    http_client = httpx.Client(trust_env=False)
+    return Anthropic(api_key=api_key or os.getenv("ANTHROPIC_API_KEY"), http_client=http_client)
+
+
 class Config:
     """Application configuration"""
 

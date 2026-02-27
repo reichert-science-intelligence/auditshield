@@ -1,10 +1,10 @@
 # meat_validator.py
-from anthropic import Anthropic
 import json
 import re
 from typing import Dict, List, Optional
 from datetime import datetime
 
+from app_config import get_anthropic_client
 from database import get_db_manager
 
 
@@ -15,7 +15,7 @@ class MEATValidator:
     """
 
     def __init__(self, api_key: Optional[str] = None):
-        self.client = Anthropic(api_key=api_key)
+        self.client = get_anthropic_client(api_key=api_key)
         self.model = "claude-sonnet-4-20250514"
 
         # Top 10 High-Impact HCC categories from your document

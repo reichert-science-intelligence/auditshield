@@ -2,13 +2,13 @@
 Real-time validation engine for Phase 3 proactive intelligence
 Processes encounters as they're documented with live M.E.A.T. validation
 """
-from anthropic import Anthropic
 import json
 import threading
 import time
 from typing import Dict, List, Optional
 from datetime import datetime
 
+from app_config import get_anthropic_client
 from database import get_db_manager
 from meat_validator import MEATValidator
 
@@ -27,7 +27,7 @@ class RealtimeValidationEngine:
     def __init__(self):
         self.db = get_db_manager()
         self.validator = MEATValidator()
-        self.client = Anthropic()
+        self.client = get_anthropic_client()
 
         # Validation thresholds
         self.auto_alert_threshold = 70  # Confidence below this triggers alert

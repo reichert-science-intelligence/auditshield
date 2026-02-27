@@ -6,7 +6,7 @@ import json
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
 
-from anthropic import Anthropic
+from app_config import get_anthropic_client
 from database import get_db_manager
 
 
@@ -24,7 +24,7 @@ class RegulatoryIntelligence:
 
     def __init__(self):
         self.db = get_db_manager()
-        self.client = Anthropic()
+        self.client = get_anthropic_client()
         self.model = "claude-sonnet-4-20250514"
 
         self.sources = {
