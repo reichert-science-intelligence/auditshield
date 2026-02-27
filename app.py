@@ -90,6 +90,8 @@ app_ui = ui.page_fluid(
             .chart-backup { background: #fff3cd; border-left: 3px solid #ffc107; }
             .chart-reject { background: #f8d7da; border-left: 3px solid #dc3545; }
             .demo-banner { background: #fff3cd; border: 2px solid #ffc107; padding: 10px 20px; margin: 10px 0; border-radius: 5px; text-align: center; font-weight: bold; }
+            .demo-banner-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #fff3cd; border-top: 2px solid #ffc107; padding: 10px; text-align: center; font-weight: bold; z-index: 1000; }
+            body { padding-bottom: 50px; }
         """),
         ui.tags.script("""
             document.addEventListener('DOMContentLoaded', function() {
@@ -103,9 +105,6 @@ app_ui = ui.page_fluid(
                 });
             });
         """)
-    ),
-    ui.div(
-        ui.div("DEMO MODE: All data shown is synthetic and generated for demonstration purposes only", class_="demo-banner"),
     ),
     ui.page_navbar(
         # ==================== PHASE 1 TABS ====================
@@ -466,6 +465,10 @@ app_ui = ui.page_fluid(
 
         title="AuditShield-Live - Phase 1+2+3",
         id="main_nav"
+    ),
+    ui.div(
+        "DEMO MODE: All data shown is synthetic and generated for demonstration purposes only",
+        class_="demo-banner-footer"
     )
 )
 
@@ -475,8 +478,8 @@ def server(input, output, session):
 
     # Reactive values
     provider_scores_data = reactive.Value(pd.DataFrame())
-    mock_audit_results = reactive.Value({})
-    roi_results = reactive.Value({})
+    mock_audit_results_data = reactive.Value({})
+    roi_results_data = reactive.Value({})
     active_audits = reactive.Value([])
     selected_audit_id = reactive.Value(None)
     tpe_providers = reactive.Value(pd.DataFrame())
@@ -665,15 +668,15 @@ def server(input, output, session):
 
     # Mock Audit
     @reactive.Effect
-    @reactive.event(input.run_mock_audit)
+    @reactive.event(input.run_mock_audit, ignore_none=False)
     def run_audit_simulation():
         results = simulator.run_mock_audit(contract_size=input.contract_size(), year=input.audit_year())
-        mock_audit_results.set(results)
+        mock_audit_results_data.set(results)
 
     @output
     @render.ui
     def mock_audit_results():
-        results = mock_audit_results.get()
+        results = mock_audit_results_data.get()
         if not results:
             return ui.div(ui.p("Click 'Run Mock Audit'", class_="text-muted"), class_="text-center p-5")
         summary = results.get('audit_summary', {})
@@ -697,7 +700,7 @@ def server(input, output, session):
     @output
     @render.ui
     def audit_failure_categories():
-        results = mock_audit_results.get()
+        results = mock_audit_results_data.get()
         if not results or not results.get('audit_summary', {}).get('top_failure_categories'):
             fig = go.Figure()
         else:
@@ -727,16 +730,16 @@ def server(input, output, session):
         return ui.div(ui.h3(f"{exposure['current_validation_rate']:.1f}%"), ui.p("Current Validation Rate"), ui.p("Organization-wide", class_="text-muted small"), class_="metric-card")
 
     @reactive.Effect
-    @reactive.event(input.calculate_roi)
+    @reactive.event(input.calculate_roi, ignore_none=False)
     def calculate_remediation_roi():
         target_rate = input.target_validation_rate()
         roi = calc.calculate_remediation_roi(target_validation_rate=target_rate)
-        roi_results.set(roi)
+        roi_results_data.set(roi)
 
     @output
     @render.ui
     def roi_results():
-        roi = roi_results.get()
+        roi = roi_results_data.get()
         if not roi:
             return ui.div(ui.p("Click 'Calculate ROI'", class_="text-muted text-center p-4"))
         roi_class = "roi-positive" if roi.get('net_roi', 0) > 0 else "roi-negative"
@@ -768,10 +771,13 @@ def server(input, output, session):
     # ==================== PHASE 2 LOGIC ====================
 
     # RADV Command Center
-    @reactive.Effect
-    def load_active_audits():
+    def _refresh_active_audits():
         audits = db.execute_query("SELECT audit_id, audit_notice_id, contract_name FROM radv_audits WHERE audit_status = 'ACTIVE' ORDER BY notification_date DESC", (), fetch="all")
         active_audits.set(audits if audits else [])
+
+    @reactive.Effect
+    def load_active_audits():
+        _refresh_active_audits()
 
     @output
     @render.ui
@@ -817,7 +823,7 @@ def server(input, output, session):
             sample_enrollees=sample_enrollees
         )
         selected_audit_id.set(audit_id)
-        load_active_audits()
+        _refresh_active_audits()
 
     @output
     @render.ui
