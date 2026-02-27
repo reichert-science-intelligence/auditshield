@@ -104,16 +104,16 @@ def initialize_complete_system():
     except Exception as e:
         print(f"   [WARN] Could not generate forecast: {e}")
 
-    # Step 9: Scan regulatory sources
+    # Step 9: Scan regulatory sources (skip during init to avoid API dependency)
     print("\n[Step 9] Scanning Regulatory Sources...")
-    from regulatory_intelligence import RegulatoryIntelligence
-
-    reg_intel = RegulatoryIntelligence()
-    try:
-        updates = reg_intel.scan_regulatory_sources(days_back=30)
-        print(f"   [OK] Found {len(updates)} regulatory updates")
-    except Exception as e:
-        print(f"   [WARN] Could not scan regulatory sources: {e}")
+    print("   [SKIP] Regulatory intelligence will load on first use")
+    # from regulatory_intelligence import RegulatoryIntelligence
+    # reg_intel = RegulatoryIntelligence()
+    # try:
+    #     updates = reg_intel.scan_regulatory_sources(days_back=30)
+    #     print(f"   [OK] Found {len(updates)} regulatory updates")
+    # except Exception as e:
+    #     print(f"   [WARN] Could not scan regulatory sources: {e}")
 
     # Step 10: Run system validation
     print("\n[Step 10] Validating System Components...")
