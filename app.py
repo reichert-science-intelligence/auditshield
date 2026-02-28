@@ -624,6 +624,9 @@ app_ui = ui.page_fluid(
 
 def server(input, output, session):
 
+    # Initialization flag - prevents init from re-running and overwriting user data
+    _initialized = reactive.Value(False)
+
     # Reactive values
     provider_scores_data = reactive.Value(pd.DataFrame())
     mock_audit_results_data = reactive.Value({})
@@ -675,6 +678,10 @@ def server(input, output, session):
         Master initialization - runs ONCE on app startup.
         Pre-populates all views with demo data so they show immediately.
         """
+        if _initialized.get():
+            return
+
+        print("[Init] Starting first-time initialization...")
         try:
             # 1. Provider Scorecard - load from db, fallback to demo
             scores = db.get_provider_scores(lookback_months=12, specialties=None, risk_tiers=None, min_hccs=0)
@@ -945,6 +952,9 @@ def server(input, output, session):
         print(f"[DEBUG] provider_scores_data: {provider_scores_data.get() is not None} (rows: {len(provider_scores_data.get()) if hasattr(provider_scores_data.get(), '__len__') else 'N/A'})")
         print(f"[DEBUG] roi_results_data: {roi_results_data.get() is not None} (has data: {bool(roi_results_data.get())})")
         print(f"[DEBUG] reconciliation_data: {reconciliation_data.get() is not None} (has data: {bool(reconciliation_data.get())})")
+
+        _initialized.set(True)
+        print("[Init] Initialization complete - will not run again")
 
     @output
     @render.ui
