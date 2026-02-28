@@ -493,6 +493,110 @@ def server(input, output, session):
     rules_created = reactive.Value([])
     rule_test_violations = reactive.Value(None)
 
+    def _refresh_active_audits():
+        audits = db.execute_query("SELECT audit_id, audit_notice_id, contract_name FROM radv_audits WHERE audit_status = 'ACTIVE' ORDER BY notification_date DESC", (), fetch="all")
+        active_audits.set(audits if audits else [])
+
+    @reactive.Effect
+    def _initialize_demo_data():
+        """
+        Master initialization - runs ONCE on app startup.
+        Pre-populates all views with demo data so they show immediately.
+        """
+        try:
+            # 1. Provider Scorecard - load from db
+            scores = db.get_provider_scores(lookback_months=12, specialties=None, risk_tiers=None, min_hccs=0)
+            if not scores.empty:
+                provider_scores_data.set(scores)
+                provider_names = scores['provider_name'].tolist()
+                provider_ids = scores['provider_id'].tolist()
+                ui.update_select("selected_provider", choices={name: name for name in provider_names})
+                ui.update_select("edu_provider_select", choices={name: name for name in provider_names})
+                ui.update_select("realtime_provider_select", choices={pid: f"{name} ({pid})" for pid, name in zip(provider_ids, provider_names)})
+        except Exception:
+            pass
+
+        try:
+            # 2. Mock Audit - pre-run demo
+            mock_res = simulator.run_mock_audit(contract_size="medium_contract", year=2026)
+            if mock_res and not mock_res.get("audit_summary", {}).get("error"):
+                mock_audit_results_data.set(mock_res)
+        except Exception:
+            pass
+
+        try:
+            # 3. Financial ROI - pre-calculate
+            roi = calc.calculate_remediation_roi(target_validation_rate=95)
+            if roi:
+                roi_results_data.set(roi)
+        except Exception:
+            pass
+
+        try:
+            # 4. RADV - load active audits
+            _refresh_active_audits()
+        except Exception:
+            pass
+
+        try:
+            # 5. Chart Selection - get recommendations for audit 1 if exists
+            audits = active_audits.get()
+            if audits and len(audits) > 0:
+                aid = audits[0].get("audit_id")
+                recs = chart_selector.get_submission_recommendations(aid)
+                if recs is not None and not (hasattr(recs, 'empty') and recs.empty):
+                    chart_scores.set(recs)
+        except Exception:
+            pass
+
+        try:
+            # 6. Education - load dashboard
+            dash = educator.get_education_dashboard()
+            if dash:
+                education_dashboard.set(dash)
+        except Exception:
+            pass
+
+        try:
+            # 7. TPE providers
+            tpe = educator.identify_providers_for_tpe(min_failures=5, lookback_months=6)
+            if tpe is not None and not (hasattr(tpe, 'empty') and tpe.empty):
+                tpe_providers.set(tpe)
+        except Exception:
+            pass
+
+        try:
+            # 8. HCC Reconciliation
+            recon = reconciler.run_comprehensive_reconciliation(lookback_months=12, min_confidence=85.0)
+            if recon:
+                reconciliation_data.set(recon)
+        except Exception:
+            pass
+
+        try:
+            # 9. Compliance Forecast
+            fc = forecaster.generate_forecast(forecast_periods=12, confidence_level=0.95)
+            if fc and not fc.get("error"):
+                forecast_data.set(fc)
+        except Exception:
+            pass
+
+        try:
+            # 10. Regulatory - load updates
+            updates = reg_intel.get_unprocessed_updates()
+            if updates:
+                regulatory_updates.set(updates)
+        except Exception:
+            pass
+
+        try:
+            # 11. EMR Rules - create standard rules
+            created = emr_builder.create_standard_rules()
+            if created:
+                rules_created.set(created)
+        except Exception:
+            pass
+
     # ==================== PHASE 1 LOGIC ====================
     # Run on startup (ignore_none=False so button value 0 triggers) and on refresh click.
     # Cannot call Effect from another Effect - use single Effect with ignore_none=False.
@@ -771,10 +875,6 @@ def server(input, output, session):
     # ==================== PHASE 2 LOGIC ====================
 
     # RADV Command Center
-    def _refresh_active_audits():
-        audits = db.execute_query("SELECT audit_id, audit_notice_id, contract_name FROM radv_audits WHERE audit_status = 'ACTIVE' ORDER BY notification_date DESC", (), fetch="all")
-        active_audits.set(audits if audits else [])
-
     @reactive.Effect
     def load_active_audits():
         _refresh_active_audits()
