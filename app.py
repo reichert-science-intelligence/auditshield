@@ -467,7 +467,8 @@ app_ui = ui.page_fluid(
         id="main_nav"
     ),
     ui.div(
-        "DEMO MODE: All data shown is synthetic and generated for demonstration purposes only",
+        ui.div(ui.output_ui("diagnostic_status_display")),
+        ui.div("DEMO MODE: All data shown is synthetic and generated for demonstration purposes only"),
         class_="demo-banner-footer"
     )
 )
@@ -493,6 +494,9 @@ def server(input, output, session):
     rules_created = reactive.Value([])
     rule_test_violations = reactive.Value(None)
 
+    # Diagnostic: simple reactive test to verify reactive system works
+    diagnostic_status = reactive.Value("Checking...")
+
     def _refresh_active_audits():
         audits = db.execute_query("SELECT audit_id, audit_notice_id, contract_name FROM radv_audits WHERE audit_status = 'ACTIVE' ORDER BY notification_date DESC", (), fetch="all")
         active_audits.set(audits if audits else [])
@@ -513,24 +517,24 @@ def server(input, output, session):
                 ui.update_select("selected_provider", choices={name: name for name in provider_names})
                 ui.update_select("edu_provider_select", choices={name: name for name in provider_names})
                 ui.update_select("realtime_provider_select", choices={pid: f"{name} ({pid})" for pid, name in zip(provider_ids, provider_names)})
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[Init] Provider data: {e}")
 
         try:
             # 2. Mock Audit - pre-run demo
             mock_res = simulator.run_mock_audit(contract_size="medium_contract", year=2026)
             if mock_res and not mock_res.get("audit_summary", {}).get("error"):
                 mock_audit_results_data.set(mock_res)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[Init] Mock audit: {e}")
 
         try:
             # 3. Financial ROI - pre-calculate
             roi = calc.calculate_remediation_roi(target_validation_rate=95)
             if roi:
                 roi_results_data.set(roi)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[Init] ROI: {e}")
 
         try:
             # 4. RADV - load active audits
@@ -546,8 +550,8 @@ def server(input, output, session):
                 recs = chart_selector.get_submission_recommendations(aid)
                 if recs is not None and not (hasattr(recs, 'empty') and recs.empty):
                     chart_scores.set(recs)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[Init] Chart selection: {e}")
 
         try:
             # 6. Education - load dashboard
@@ -562,8 +566,8 @@ def server(input, output, session):
             tpe = educator.identify_providers_for_tpe(min_failures=5, lookback_months=6)
             if tpe is not None and not (hasattr(tpe, 'empty') and tpe.empty):
                 tpe_providers.set(tpe)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[Init] TPE: {e}")
 
         try:
             # 8. HCC Reconciliation
@@ -578,24 +582,33 @@ def server(input, output, session):
             fc = forecaster.generate_forecast(forecast_periods=12, confidence_level=0.95)
             if fc and not fc.get("error"):
                 forecast_data.set(fc)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[Init] Forecast: {e}")
 
         try:
             # 10. Regulatory - load updates
             updates = reg_intel.get_unprocessed_updates()
             if updates:
                 regulatory_updates.set(updates)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[Init] Regulatory: {e}")
 
         try:
             # 11. EMR Rules - create standard rules
             created = emr_builder.create_standard_rules()
             if created:
                 rules_created.set(created)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[Init] EMR rules: {e}")
+
+        diagnostic_status.set("All demo data initialized!")
+        print("All demo data initialized!")
+
+    @output
+    @render.ui
+    def diagnostic_status_display():
+        status = diagnostic_status.get()
+        return ui.div(ui.p(status, class_="text-small text-muted"), class_="p-2")
 
     # ==================== PHASE 1 LOGIC ====================
     # Run on startup (ignore_none=False so button value 0 triggers) and on refresh click.
