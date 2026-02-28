@@ -11,6 +11,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
+from textwrap import dedent
 import json
 
 
@@ -18,12 +19,16 @@ def _fmt_date(s):
     """Format date for display as MM/DD/YYYY (American format)."""
     if s is None or (isinstance(s, float) and pd.isna(s)):
         return ""
-    s = str(s)[:10]
-    try:
-        dt = datetime.strptime(s, "%Y-%m-%d")
-        return dt.strftime("%m/%d/%Y")
-    except (ValueError, TypeError):
-        return s
+    s = str(s).strip()[:10]
+    if not s:
+        return ""
+    for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%d/%m/%Y"):
+        try:
+            dt = datetime.strptime(s, fmt)
+            return dt.strftime("%m/%d/%Y")
+        except (ValueError, TypeError):
+            continue
+    return s
 
 # Phase 1 Imports
 from meat_validator import MEATValidator
@@ -458,11 +463,119 @@ app_ui = ui.page_fluid(
             )
         ),
 
+        # Tab 13: About
+        ui.nav_panel(
+            "About",
+            ui.card(
+                ui.card_header(
+                    ui.HTML("""
+                        <div style="text-align: center;">
+                            <h2>AuditShield-Live</h2>
+                            <p style="color: #666;">Healthcare AI Analytics Platform</p>
+                        </div>
+                    """)
+                ),
+                ui.layout_columns(
+                    ui.div(
+                        ui.HTML("""
+                            <div style="text-align: center;">
+                                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyMDAnIGhlaWdodD0nMjAwJyB2aWV3Qm94PScwIDAgMjAwIDIwMCc+PGNpcmNsZSBjeD0nMTAwJyBjeT0nMTAwJyByPScxMDAnIGZpbGw9JyMwMDc3YjUnLz48dGV4dCB4PScxMDAnIHk9JzEyNScgdGV4dC1hbmNob3I9J21pZGRsZScgZmlsbD0nd2hpdGUnIGZvbnQtc2l6ZT0nNzInIGZvbnQtZmFtaWx5PSdBcmlhbCcgZm9udC13ZWlnaHQ9J2JvbGQnPlJSPC90ZXh0Pjwvc3ZnPg=="
+                                     style="width: 200px; height: 200px; border-radius: 50%; margin: 20px auto; display: block; border: 4px solid #0077b5;">
+                                <h3 style="margin: 10px 0;">Robert Reichert</h3>
+                                <p style="color: #666; margin: 5px 0;">Healthcare Data Scientist & AI Architect</p>
+                                <p style="margin: 15px 0;">
+                                    <a href="https://www.linkedin.com/in/robertreichert-healthcareai/" target="_blank"
+                                       style="display: inline-block; padding: 10px 20px; background: #0077b5; color: white;
+                                       text-decoration: none; border-radius: 4px; font-weight: bold;">
+                                        Connect on LinkedIn
+                                    </a>
+                                </p>
+                            </div>
+                        """)
+                    ),
+                    ui.div(
+                        ui.markdown(dedent("""
+                        ### Platform Overview
+
+                        AuditShield-Live is a comprehensive healthcare analytics platform demonstrating production-grade AI capabilities for Medicare Advantage quality improvement and RADV audit defensibility.
+
+                        ### Core Features
+
+                        - **RADV Audit Defense** - 25-week timeline tracking and simulation
+                        - **Mock Audit Predictor** - CMS audit outcome forecasting
+                        - **HCC Reconciliation** - AI-powered chart review recommendations
+                        - **Chart Selection AI** - Agentic RAG for optimal RADV submission
+                        - **Compliance Forecasting** - 12-month Star Ratings prediction
+                        - **Financial Impact Analysis** - ROI modeling for quality initiatives
+                        - **Real-Time Validation** - M.E.A.T. compliance monitoring
+                        - **Provider Education** - TPE session tracking and effectiveness
+                        - **Regulatory Intelligence** - Automated CMS policy monitoring
+                        - **EMR Validation Rules** - Dynamic clinical documentation checks
+                        - **Executive Dashboard** - Strategic KPI tracking
+
+                        ### Technical Architecture
+
+                        **AI/ML Stack:** Anthropic Claude (Sonnet 4), Compound AI System, Context Engineering Framework
+
+                        **Application Stack:** Python 3.11, Shiny for Python, SQLite, Plotly, Docker
+
+                        **Deployment:** HuggingFace Spaces, GitHub, Automated initialization
+
+                        ### Innovation Highlights
+
+                        - **Agentic RAG** - Claude autonomously scores 100+ charts using multi-step reasoning
+                        - **Compound AI Engineering** - Multiple AI systems with validation and consensus
+                        - **Production-Ready Architecture** - Defensive programming, comprehensive error handling
+
+                        ### Related Platforms
+
+                        **StarGuard AI** - Full healthcare analytics suite
+                        - **Mobile Edition** - iOS/Android native apps for field validation
+                        - **Desktop Edition** - Enterprise deployment with PostgreSQL backend
+
+                        📱 [StarGuard Mobile Demo](https://rreichert-starguardai.hf.space)
+                        💻 [StarGuard Desktop](https://rreichert-starguard-desktop.hf.space)
+
+                        ### For Recruiters & Hiring Managers
+
+                        - ✅ Full-stack Python development
+                        - ✅ AI/ML integration - Production LLM implementation
+                        - ✅ Healthcare domain expertise - 22+ years in MA/HEDIS/HCC
+                        - ✅ Cloud deployment - Docker, automated CI/CD
+                        - ✅ UX design - Professional, responsive interfaces
+                        - ✅ Database design - Schema evolution, data modeling
+
+                        **Documented Impact:** $148M+ in cost savings across UPMC, Aetna, TriWest, BCBS
+
+                        ### Contact
+
+                        **Robert Reichert** - Healthcare Data Scientist & AI Architect
+                        Seeking remote contract projects for American plans, startups, and governmental organizations.
+
+                        📧 [Contact via LinkedIn](https://www.linkedin.com/in/robertreichert-healthcareai/)
+
+                        ---
+
+                        © 2026 Robert Reichert. All rights reserved.
+                        """))
+                    ),
+                    col_widths=(4, 8)
+                )
+            )
+        ),
+
         title="AuditShield-Live - Phase 1+2+3",
         id="main_nav"
     ),
     ui.div(
-        "DEMO MODE: All data shown is synthetic and generated for demonstration purposes only",
+        ui.HTML("""
+            All data shown is synthetic and generated for demonstration purposes only
+            <br>
+            <span style="font-size: 10px; opacity: 0.7;">
+                © 2026 Robert Reichert. All rights reserved.
+                Unauthorized reproduction or distribution prohibited.
+            </span>
+        """),
         class_="demo-banner-footer"
     )
 )
@@ -504,9 +617,17 @@ def server(input, output, session):
             if audits and len(audits) > 0:
                 active_audits.set(audits)
             else:
-                active_audits.set([{"audit_id": "AUDIT-001", "audit_notice_id": "2026-RADV-001", "contract_name": "Demo Medicare Advantage Contract"}])
+                active_audits.set([
+                    {"audit_id": "AUDIT-001", "audit_notice_id": "2026-RADV-001", "contract_name": "Demo Medicare Advantage Contract"},
+                    {"audit_id": "AUDIT-002", "audit_notice_id": "2026-RADV-002", "contract_name": "Demo Large Plan (50K+ enrollees)"},
+                    {"audit_id": "AUDIT-003", "audit_notice_id": "2026-RADV-003", "contract_name": "Demo Small Plan (0-10K)"},
+                ])
         except Exception:
-            active_audits.set([{"audit_id": "AUDIT-001", "audit_notice_id": "2026-RADV-001", "contract_name": "Demo Medicare Advantage Contract"}])
+            active_audits.set([
+                {"audit_id": "AUDIT-001", "audit_notice_id": "2026-RADV-001", "contract_name": "Demo Medicare Advantage Contract"},
+                {"audit_id": "AUDIT-002", "audit_notice_id": "2026-RADV-002", "contract_name": "Demo Large Plan (50K+ enrollees)"},
+                {"audit_id": "AUDIT-003", "audit_notice_id": "2026-RADV-003", "contract_name": "Demo Small Plan (0-10K)"},
+            ])
 
     @reactive.Effect
     def _initialize_demo_data():
@@ -1116,7 +1237,8 @@ def server(input, output, session):
         if not audits:
             return ui.input_select("selected_audit", "Select Audit", choices={"": "No active audits"})
         choices = {str(a['audit_id']): f"{a['audit_notice_id']} - {a['contract_name']}" for a in audits}
-        return ui.input_select("selected_audit", "Select Audit", choices=choices)
+        first_key = list(choices.keys())[0] if choices else ""
+        return ui.input_select("selected_audit", "Select Audit", choices=choices, selected=first_key)
 
     @output
     @render.ui
@@ -1125,7 +1247,8 @@ def server(input, output, session):
         if not audits:
             return ui.input_select("selected_audit_charts", "Select Audit", choices={"": "No active audits"})
         choices = {str(a['audit_id']): f"{a['audit_notice_id']}" for a in audits}
-        return ui.input_select("selected_audit_charts", "Select Audit", choices=choices)
+        first_key = list(choices.keys())[0] if choices else ""
+        return ui.input_select("selected_audit_charts", "Select Audit", choices=choices, selected=first_key)
 
     @reactive.Effect
     @reactive.event(input.create_audit)
