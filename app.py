@@ -48,6 +48,7 @@ from compliance_forecasting import ComplianceForecaster
 from regulatory_intelligence import RegulatoryIntelligence
 from emr_rule_builder import EMRRuleBuilder
 from dashboard_manager import DashboardManager
+from avatar_base64 import AVATAR_BASE64
 
 # Add Phase 2 & Phase 3 schema to database
 from database_phase2_schema import add_phase2_schema
@@ -477,10 +478,12 @@ app_ui = ui.page_fluid(
                 ),
                 ui.layout_columns(
                     ui.div(
-                        ui.HTML("""
+                        ui.HTML(
+                            f'''
                             <div style="text-align: center;">
-                                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyMDAnIGhlaWdodD0nMjAwJyB2aWV3Qm94PScwIDAgMjAwIDIwMCc+PGNpcmNsZSBjeD0nMTAwJyBjeT0nMTAwJyByPScxMDAnIGZpbGw9JyMwMDc3YjUnLz48dGV4dCB4PScxMDAnIHk9JzEyNScgdGV4dC1hbmNob3I9J21pZGRsZScgZmlsbD0nd2hpdGUnIGZvbnQtc2l6ZT0nNzInIGZvbnQtZmFtaWx5PSdBcmlhbCcgZm9udC13ZWlnaHQ9J2JvbGQnPlJSPC90ZXh0Pjwvc3ZnPg=="
-                                     style="width: 200px; height: 200px; border-radius: 50%; margin: 20px auto; display: block; border: 4px solid #0077b5;">
+                                <img src="{f'data:image/png;base64,{AVATAR_BASE64}' if AVATAR_BASE64 else 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyMDAnIGhlaWdodD0nMjAwJyB2aWV3Qm94PScwIDAgMjAwIDIwMCc+PGNpcmNsZSBjeD0nMTAwJyBjeT0nMTAwJyByPScxMDAnIGZpbGw9JyMwMDc3YjUnLz48dGV4dCB4PScxMDAnIHk9JzEyNScgdGV4dC1hbmNob3I9J21pZGRsZScgZmlsbD0nd2hpdGUnIGZvbnQtc2l6ZT0nNzInIGZvbnQtZmFtaWx5PSdBcmlhbCcgZm9udC13ZWlnaHQ9J2JvbGQnPlJSPC90ZXh0Pjwvc3ZnPg=='}"
+                                     style="width: 200px; height: 200px; border-radius: 50%; margin: 20px auto; display: block;
+                                            border: 4px solid #0077b5; object-fit: cover;">
                                 <h3 style="margin: 10px 0;">Robert Reichert</h3>
                                 <p style="color: #666; margin: 5px 0;">Healthcare Data Scientist & AI Architect</p>
                                 <p style="margin: 15px 0;">
@@ -491,7 +494,7 @@ app_ui = ui.page_fluid(
                                     </a>
                                 </p>
                             </div>
-                        """)
+                        ''')
                     ),
                     ui.div(
                         ui.markdown(dedent("""
