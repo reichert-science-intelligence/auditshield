@@ -1160,17 +1160,18 @@ def server(input, output, session):
                 f"Place {int(failures * 0.4)} RED tier providers on mandatory documentation training",
                 "Deploy EMR hard-stops requiring at least 2 M.E.A.T. elements",
             ]
-            mock_audit_results_data.set({
-                "audit_summary": {
-                    "sample_size": sample_size,
-                    "predicted_failures": failures,
-                    "error_rate": round(error_rate * 100, 1),
-                    "estimated_penalty": penalty,
-                    "recommendations": recs,
-                    "top_failure_categories": failure_cats,
-                },
-                "financial_impact": {"severity": severity, "error_rate": round(error_rate * 100, 1), "penalty_multiplier": mult},
-            })
+            payload = dict(
+                audit_summary=dict(
+                    sample_size=sample_size,
+                    predicted_failures=failures,
+                    error_rate=round(error_rate * 100, 1),
+                    estimated_penalty=penalty,
+                    recommendations=recs,
+                    top_failure_categories=dict(failure_cats),
+                ),
+                financial_impact=dict(severity=severity, error_rate=round(error_rate * 100, 1), penalty_multiplier=mult),
+            )
+            mock_audit_results_data.set(payload)
             print(f"[Mock Audit] DATA SET! Sample: {sample_size}, Failures: {failures}, Error: {error_rate:.1%}")
         except Exception as e:
             print(f"[Mock Audit] ERROR: {e}")
@@ -1184,6 +1185,8 @@ def server(input, output, session):
     def mock_audit_results():
         try:
             results = mock_audit_results_data.get()
+            summary = (results or {}).get("audit_summary") or {}
+            print(f"[RENDER] Mock Audit! Sample: {summary.get('sample_size')}, Has data: {bool(results)}")
             if not results or not isinstance(results, dict):
                 return ui.div(ui.p("Click 'Run Mock Audit'", class_="text-muted"), class_="text-center p-5")
             summary = results.get('audit_summary') or {}
@@ -1263,14 +1266,15 @@ def server(input, output, session):
             net_benefit = penalties_avoided - total_investment
             roi_pct = (net_benefit / total_investment * 100) if total_investment > 0 else 0
             training_cost = total_investment * 0.6
-            roi_results_data.set({
-                "total_investment": int(total_investment),
-                "training_cost": int(training_cost),
-                "total_savings": int(penalties_avoided),
-                "net_roi": int(net_benefit),
-                "roi_percentage": round(roi_pct, 1),
-                "providers_remediated": max(1, int(improvement * 100)),
-            })
+            payload = dict(
+                total_investment=int(total_investment),
+                training_cost=int(training_cost),
+                total_savings=int(penalties_avoided),
+                net_roi=int(net_benefit),
+                roi_percentage=round(roi_pct, 1),
+                providers_remediated=max(1, int(improvement * 100)),
+            )
+            roi_results_data.set(payload)
             print(f"[ROI] DATA SET! Investment: ${int(total_investment):,}, ROI: {roi_pct:.1f}%")
         except Exception as e:
             print(f"[ROI] ERROR: {e}")
@@ -1287,6 +1291,7 @@ def server(input, output, session):
     @render.ui
     def roi_results():
         roi = roi_results_data.get()
+        print(f"[RENDER] ROI! Investment: {roi.get('total_investment') if roi else None}, Has data: {bool(roi)}")
         if not roi:
             return ui.div(ui.p("Click 'Calculate ROI'", class_="text-muted text-center p-4"))
         roi_class = "roi-positive" if roi.get('net_roi', 0) > 0 else "roi-negative"
