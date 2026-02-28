@@ -224,10 +224,16 @@ class RADVCommandCenter:
         if not audit:
             return {}
 
-        # Calculate days remaining
-        due_date = datetime.strptime(str(audit['medical_record_due_date']), '%Y-%m-%d')
-        days_remaining = (due_date - datetime.now()).days
-        weeks_remaining = days_remaining / 7
+        # Calculate days remaining (defensive: handle None/missing due date)
+        due_str = audit.get('medical_record_due_date')
+        if due_str is None:
+            due_str = datetime.now().strftime('%Y-%m-%d')
+        try:
+            due_date = datetime.strptime(str(due_str).strip()[:10], '%Y-%m-%d')
+        except (ValueError, TypeError):
+            due_date = datetime.now()
+        days_remaining = max(0, (due_date - datetime.now()).days)
+        weeks_remaining = days_remaining / 7 if days_remaining else 0
 
         # Get enrollee status breakdown
         enrollee_status_query = f"""
@@ -253,6 +259,10 @@ class RADVCommandCenter:
         """
 
         submission_stats = self.db.execute_query(submission_query, (audit_id,), fetch="one")
+        # Defensive: SUM returns NULL when no rows; COUNT returns 0
+        total = submission_stats.get('total') or 0
+        submitted = submission_stats.get('submitted') or 0
+        records_received = submission_stats.get('records_received') or 0
 
         # Get task progress
         task_query = f"""
@@ -312,8 +322,9 @@ class RADVCommandCenter:
 
         Returns: 'ON_TRACK', 'AT_RISK', or 'CRITICAL'
         """
-
-        pct_complete = submission_stats['submitted'] / submission_stats['total'] if submission_stats['total'] > 0 else 0
+        total = submission_stats.get('total') or 0
+        submitted = submission_stats.get('submitted') or 0
+        pct_complete = submitted / total if total > 0 else 0
         pct_time_remaining = days_remaining / (25 * 7)  # 25 weeks total
 
         # If completion % is ahead of time remaining %, we're on track

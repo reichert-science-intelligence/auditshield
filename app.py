@@ -118,6 +118,24 @@ app_ui = ui.page_fluid(
                         }
                     });
                 });
+                // Auto-close sidebar after action buttons (mobile)
+                ['create_audit','run_mock_audit','score_charts','schedule_session','run_reconciliation','generate_forecast','calculate_roi'].forEach(function(id) {
+                    setInterval(function() {
+                        var btn = document.querySelector('[id$="' + id + '"]');
+                        if (btn && !btn.dataset.sbClose) {
+                            btn.dataset.sbClose = '1';
+                            btn.addEventListener('click', function() {
+                                setTimeout(function() {
+                                    var off = document.querySelector('.offcanvas.show');
+                                    if (off && window.innerWidth < 992) {
+                                        var closeBtn = off.querySelector('[data-bs-dismiss="offcanvas"]');
+                                        if (closeBtn) closeBtn.click();
+                                    }
+                                }, 400);
+                            });
+                        }
+                    }, 800);
+                });
             });
         """)
     ),
@@ -1087,7 +1105,7 @@ def server(input, output, session):
     def run_audit_simulation():
         try:
             import random
-            size = input.contract_size()
+            size = input.contract_size() or "medium_contract"
             year = int(input.audit_year() or 2026)
             size_map = {"small_contract": 50, "medium_contract": 100, "large_contract": 200}
             sample_size = size_map.get(size, 100)
@@ -1202,7 +1220,8 @@ def server(input, output, session):
     @reactive.event(input.calculate_roi)
     def calculate_remediation_roi():
         try:
-            target_rate = float(input.target_validation_rate() or 95) / 100.0
+            raw = input.target_validation_rate()
+            target_rate = float(raw if raw is not None else 95) / 100.0
             baseline_rate = 0.85
             current_exposure = 2500000
             improvement = target_rate - baseline_rate
@@ -1372,14 +1391,14 @@ def server(input, output, session):
             ),
             ui.div(ui.h4(f"Status: {status['status_indicator'].replace('_', ' ')}"), ui.p(f"Sample Size: {status['sample_size']} enrollees"), class_=f"{status_class} p-3 mb-3"),
             ui.row(
-                ui.column(4, ui.div(ui.h3(f"{status['submission_progress']['pct_complete']:.0f}%"), ui.p("Submission Progress"), ui.p(f"{status['submission_progress']['submitted']}/{status['submission_progress']['total']} submitted", class_="small"), class_="metric-card")),
-                ui.column(4, ui.div(ui.h3(str(status['submission_progress']['records_received'])), ui.p("Records Received"), ui.p(f"Awaiting {status['sample_size'] - status['submission_progress']['records_received']}", class_="small"), class_="metric-card")),
+                ui.column(4, ui.div(ui.h3(f"{status['submission_progress'].get('pct_complete', 0):.0f}%"), ui.p("Submission Progress"), ui.p(f"{status['submission_progress'].get('submitted', 0)}/{status['submission_progress'].get('total', 0)} submitted", class_="small"), class_="metric-card")),
+                ui.column(4, ui.div(ui.h3(str(status['submission_progress'].get('records_received', 0))), ui.p("Records Received"), ui.p(f"Awaiting {status.get('sample_size', 0) - (status['submission_progress'].get('records_received') or 0)}", class_="small"), class_="metric-card")),
                 ui.column(4, ui.div(ui.h3(str(len(status['overdue_tasks']))), ui.p("Overdue Tasks"), ui.p("Requires attention", class_="small text-danger") if status['overdue_tasks'] else ui.p("None", class_="small text-success"), class_="metric-card"))
             ),
             ui.hr(),
             ui.card(
                 ui.card_header("Overdue Tasks") if status['overdue_tasks'] else ui.card_header("No Overdue Tasks"),
-                ui.div(*[ui.div(ui.p(f"{task['task_name']}", class_="font-weight-bold"), ui.p(f"Due: {_fmt_date(task['due_date'])} | Priority: {task['priority']}", class_="small text-muted"), class_="task-overdue") for task in status['overdue_tasks']]) if status['overdue_tasks'] else ui.p("All tasks on schedule", class_="text-success")
+                ui.div(*[ui.div(ui.p(f"{task.get('task_name', 'Task')}", class_="font-weight-bold"), ui.p(f"Due: {_fmt_date(task.get('due_date'))} | Priority: {task.get('priority', 'N/A')}", class_="small text-muted"), class_="task-overdue") for task in (status.get('overdue_tasks') or [])]) if status.get('overdue_tasks') else ui.p("All tasks on schedule", class_="text-success")
             ),
             ui.hr(),
             ui.card(ui.card_header("Enrollee Status Breakdown"), ui.output_ui("enrollee_status_chart"))
