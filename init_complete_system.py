@@ -55,15 +55,62 @@ def initialize_complete_system():
     print("\n[Step 4] Seeding Demo Data (this may take a minute)...")
     seed_comprehensive_demo_data(db)
 
-    # Step 5: Create Phase 2 demo audit
-    print("\n[Step 5] Creating Demo RADV Audit...")
-    from radv_command_center import seed_demo_audit
-
+    # Step 5: Create 3 demo RADV audits
+    print("\n[Step 5] Creating Demo RADV Audits...")
     try:
-        audit_id = seed_demo_audit()
-        print(f"   [OK] Demo audit created (ID: {audit_id})")
+        # Clear existing to ensure exactly 3 demo audits (SQLite: no FK cascade)
+        db.execute_query("DELETE FROM radv_audits", fetch="none")
+        # Radv schema: audit_notice_id, contract_id, contract_name, audit_year,
+        # notification_date, medical_record_due_date, sample_size, audit_status
+        audits = [
+            {
+                'notice_id': 'RADV-2026-H1234-204125',
+                'contract_id': 'H1234',
+                'contract': 'H1234 - HealthPlan Medicare Advantage',
+                'sample': 100,
+                'due': '2026-07-09'
+            },
+            {
+                'notice_id': 'RADV-2026-H5678-204126',
+                'contract_id': 'H5678',
+                'contract': 'H5678 - Large Plan (50K+ enrollees)',
+                'sample': 200,
+                'due': '2026-08-15'
+            },
+            {
+                'notice_id': 'RADV-2026-H9012-204127',
+                'contract_id': 'H9012',
+                'contract': 'H9012 - Small Plan (0-10K enrollees)',
+                'sample': 50,
+                'due': '2026-06-30'
+            }
+        ]
+        ph = '?' if db.db_type != 'postgresql' else '%s'
+        created_count = 0
+        for audit in audits:
+            # notification_date = due - 25 weeks
+            due_dt = datetime.strptime(audit['due'], '%Y-%m-%d')
+            notif_dt = due_dt - timedelta(weeks=25)
+            notif_str = notif_dt.strftime('%Y-%m-%d')
+            insert_cmd = "INSERT OR IGNORE" if db.db_type != "postgresql" else "INSERT"
+            q = f"""
+                {insert_cmd} INTO radv_audits (
+                    audit_notice_id, contract_id, contract_name,
+                    audit_year, notification_date, medical_record_due_date,
+                    sample_size, audit_status
+                ) VALUES ({ph}, {ph}, {ph}, 2026, {ph}, {ph}, {ph}, 'ACTIVE')
+            """
+            db.execute_query(
+                q,
+                (audit['notice_id'], audit['contract_id'], audit['contract'],
+                 notif_str, audit['due'], audit['sample']),
+                fetch="none"
+            )
+            created_count += 1
+            print(f"   Created audit {created_count}: {audit['notice_id']}")
+        print(f"   [OK] Demo audits created ({created_count} audits)")
     except Exception as e:
-        print(f"   [WARN] Could not create demo audit: {e}")
+        print(f"   [WARN] Could not create demo audits: {e}")
 
     # Step 6: Create EMR validation rules
     print("\n[Step 6] Creating EMR Validation Rules...")
