@@ -118,24 +118,34 @@ app_ui = ui.page_fluid(
                         }
                     });
                 });
-                // Auto-close sidebar after action buttons (mobile)
-                ['create_audit','run_mock_audit','score_charts','schedule_session','run_reconciliation','generate_forecast','calculate_roi'].forEach(function(id) {
-                    setInterval(function() {
-                        var btn = document.querySelector('[id$="' + id + '"]');
-                        if (btn && !btn.dataset.sbClose) {
-                            btn.dataset.sbClose = '1';
-                            btn.addEventListener('click', function() {
-                                setTimeout(function() {
-                                    var off = document.querySelector('.offcanvas.show');
-                                    if (off && window.innerWidth < 992) {
-                                        var closeBtn = off.querySelector('[data-bs-dismiss="offcanvas"]');
-                                        if (closeBtn) closeBtn.click();
-                                    }
-                                }, 400);
-                            });
-                        }
-                    }, 800);
-                });
+                // Auto-close sidebar/offcanvas after action buttons (mobile)
+                (function(){
+                    var ids = ['create_audit','run_mock_audit','score_charts','schedule_session','run_reconciliation','generate_forecast','calculate_roi','get_all_recommendations'];
+                    function attach() {
+                        ids.forEach(function(id) {
+                            var btn = document.getElementById(id) || document.querySelector('[id$="' + id + '"]');
+                            if (btn && !btn.dataset.sbClose) {
+                                btn.dataset.sbClose = '1';
+                                btn.addEventListener('click', function() {
+                                    setTimeout(function() {
+                                        var off = document.querySelector('.offcanvas.show');
+                                        if (off && window.innerWidth < 992) {
+                                            if (typeof bootstrap !== 'undefined') {
+                                                var inst = bootstrap.Offcanvas.getInstance(off);
+                                                if (inst) inst.hide();
+                                            } else {
+                                                var closeBtn = off.querySelector('[data-bs-dismiss="offcanvas"]');
+                                                if (closeBtn) closeBtn.click();
+                                            }
+                                        }
+                                    }, 350);
+                                });
+                            }
+                        });
+                    }
+                    attach();
+                    setTimeout(attach, 1500);
+                })();
             });
         """)
     ),
@@ -745,10 +755,26 @@ def server(input, output, session):
             scenario_results_data.set(pd.DataFrame({"scenario": ["Status Quo", "Target 85%", "Target 90%", "Target 95%"], "risk_reduction": [0, 15, 28, 42], "roi_percentage": [0, 120, 180, 200]}))
 
         try:
-            # 4. RADV - load active audits
+            # 4. RADV - load active audits and set initial status (so RADV tab shows data immediately)
             _refresh_active_audits()
-        except Exception:
-            pass
+            audits = active_audits.get() or []
+            if audits:
+                first = audits[0]
+                sample = 100 if 'Medium' in str(first.get('contract_name', '')) else (200 if 'Large' in str(first.get('contract_name', '')) else 50)
+                audit_status_data.set({
+                    "audit_notice_id": first.get("audit_notice_id", "2026-RADV-001"),
+                    "contract_name": first.get("contract_name", "Demo Contract"),
+                    "audit_year": 2026,
+                    "days_remaining": 167,
+                    "due_date": "08/15/2026",
+                    "status_indicator": "ON_TRACK",
+                    "sample_size": sample,
+                    "submission_progress": {"total": sample, "submitted": 0, "records_received": 0, "pct_complete": 0.0},
+                    "overdue_tasks": [],
+                    "enrollee_status": {"Not Started": sample, "In Progress": 0, "Validated": 0},
+                })
+        except Exception as e:
+            print(f"[Init] RADV: {e}")
 
         try:
             # 5. Chart Selection - try real, fallback to placeholder
@@ -1107,6 +1133,7 @@ def server(input, output, session):
             import random
             size = input.contract_size() or "medium_contract"
             year = int(input.audit_year() or 2026)
+            print(f"[Mock Audit] BUTTON CLICKED! Size: {size}, Year: {year}")
             size_map = {"small_contract": 50, "medium_contract": 100, "large_contract": 200}
             sample_size = size_map.get(size, 100)
             random.seed(hash(str(size) + str(year)))
@@ -1144,7 +1171,9 @@ def server(input, output, session):
                 },
                 "financial_impact": {"severity": severity, "error_rate": round(error_rate * 100, 1), "penalty_multiplier": mult},
             })
-        except Exception:
+            print(f"[Mock Audit] DATA SET! Sample: {sample_size}, Failures: {failures}, Error: {error_rate:.1%}")
+        except Exception as e:
+            print(f"[Mock Audit] ERROR: {e}")
             mock_audit_results_data.set({
                 "audit_summary": {"sample_size": 100, "predicted_failures": 14, "error_rate": 14.0, "estimated_penalty": 42000, "recommendations": ["Demo fallback"], "top_failure_categories": {"Active Cancers": 5, "CHF": 3, "CKD": 2}},
                 "financial_impact": {"severity": "MODERATE", "error_rate": 14.0, "penalty_multiplier": 1.0},
@@ -1222,6 +1251,7 @@ def server(input, output, session):
         try:
             raw = input.target_validation_rate()
             target_rate = float(raw if raw is not None else 95) / 100.0
+            print(f"[ROI] BUTTON CLICKED! Target: {target_rate:.1%}")
             baseline_rate = 0.85
             current_exposure = 2500000
             improvement = target_rate - baseline_rate
@@ -1241,7 +1271,9 @@ def server(input, output, session):
                 "roi_percentage": round(roi_pct, 1),
                 "providers_remediated": max(1, int(improvement * 100)),
             })
-        except Exception:
+            print(f"[ROI] DATA SET! Investment: ${int(total_investment):,}, ROI: {roi_pct:.1f}%")
+        except Exception as e:
+            print(f"[ROI] ERROR: {e}")
             roi_results_data.set({
                 "total_investment": 180000,
                 "training_cost": 108000,
@@ -1304,20 +1336,30 @@ def server(input, output, session):
             if status:
                 audit_status_data.set(status)
             else:
+                audits = active_audits.get() or []
+                match = next((a for a in audits if str(a.get("audit_id")) == str(sel)), None)
+                name = match.get("contract_name", "Demo Contract") if match else "Demo Contract"
+                sample = 200 if "Large" in name else (50 if "Small" in name else 100)
                 audit_status_data.set({
-                    "audit_notice_id": "2026-RADV-001", "contract_name": "Demo Medicare Advantage Contract", "audit_year": 2026,
-                    "days_remaining": 45, "due_date": "2026-04-15", "status_indicator": "ON_TRACK",
-                    "sample_size": 100, "submission_progress": {"pct_complete": 67, "submitted": 67, "total": 100, "records_received": 52},
-                    "overdue_tasks": [], "enrollee_status": {"Submitted": 67, "Pending": 28, "Overdue": 5},
+                    "audit_notice_id": match.get("audit_notice_id", "2026-RADV-001") if match else "2026-RADV-001",
+                    "contract_name": name, "audit_year": 2026,
+                    "days_remaining": 167, "due_date": "08/15/2026", "status_indicator": "ON_TRACK",
+                    "sample_size": sample, "submission_progress": {"total": sample, "submitted": 0, "records_received": 0, "pct_complete": 0.0},
+                    "overdue_tasks": [], "enrollee_status": {"Not Started": sample, "In Progress": 0, "Validated": 0},
                 })
         except (ValueError, TypeError):
             audit_status_data.set(None)
-        except Exception:
+        except Exception as ex:
+            print(f"[RADV] _load_audit_status error: {ex}")
+            audits = active_audits.get() or []
+            first = audits[0] if audits else {}
+            sample = 100
             audit_status_data.set({
-                "audit_notice_id": "2026-RADV-001", "contract_name": "Demo Medicare Advantage Contract", "audit_year": 2026,
-                "days_remaining": 45, "due_date": "2026-04-15", "status_indicator": "ON_TRACK",
-                "sample_size": 100, "submission_progress": {"pct_complete": 67, "submitted": 67, "total": 100, "records_received": 52},
-                "overdue_tasks": [], "enrollee_status": {"Submitted": 67, "Pending": 28, "Overdue": 5},
+                "audit_notice_id": first.get("audit_notice_id", "2026-RADV-001"),
+                "contract_name": first.get("contract_name", "Demo Contract"), "audit_year": 2026,
+                "days_remaining": 167, "due_date": "08/15/2026", "status_indicator": "ON_TRACK",
+                "sample_size": sample, "submission_progress": {"total": sample, "submitted": 0, "records_received": 0, "pct_complete": 0.0},
+                "overdue_tasks": [], "enrollee_status": {"Not Started": sample, "In Progress": 0, "Validated": 0},
             })
 
     @output
