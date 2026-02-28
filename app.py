@@ -630,6 +630,11 @@ def server(input, output, session):
             })
         except Exception as e:
             print(f"[Init] Reconciliation: {e}")
+            reconciliation_data.set({
+                "add_recommendations": [{"patient_id": "PAT001", "hcc_code": "HCC 36", "hcc_description": "Diabetes w/ complications", "confidence_score": 0.92, "financial_impact": 8500}],
+                "delete_recommendations": [{"patient_id": "PAT003", "hcc_code": "HCC 155", "hcc_description": "MDD - insufficient docs", "confidence_score": 0.85, "financial_impact": -3100}],
+                "summary": {"total_add_opportunities": 1, "total_delete_required": 1, "add_financial_value": 8500, "delete_financial_risk": 3100, "net_financial_impact": 5400},
+            })
 
         try:
             # 9. Compliance Forecast - try real, fallback to placeholder
@@ -693,6 +698,10 @@ def server(input, output, session):
 
         diagnostic_status.set("All demo data initialized!")
         print("All demo data initialized!")
+        print(f"[DEBUG] mock_audit_results_data: {mock_audit_results_data.get() is not None} (has data: {bool(mock_audit_results_data.get())})")
+        print(f"[DEBUG] provider_scores_data: {provider_scores_data.get() is not None} (rows: {len(provider_scores_data.get()) if hasattr(provider_scores_data.get(), '__len__') else 'N/A'})")
+        print(f"[DEBUG] roi_results_data: {roi_results_data.get() is not None} (has data: {bool(roi_results_data.get())})")
+        print(f"[DEBUG] reconciliation_data: {reconciliation_data.get() is not None} (has data: {bool(reconciliation_data.get())})")
 
     @output
     @render.ui
@@ -1357,34 +1366,48 @@ def server(input, output, session):
     @output
     @render.ui
     def recon_add_opportunities():
-        dash = reconciler.get_reconciliation_dashboard()
-        add = dash.get("add_opportunities", {})
+        data = reconciliation_data.get() or {}
+        summary = data.get("summary", {})
+        count = summary.get("total_add_opportunities", 0)
+        value = summary.get("add_financial_value", 0)
+        adds = data.get("add_recommendations", [])
+        if not count and adds:
+            count = len(adds)
+        if not value and adds:
+            value = sum(a.get("financial_impact", 0) or 0 for a in adds)
         return ui.div(
-            ui.h3(str(add.get("count", 0))),
+            ui.h3(str(count)),
             ui.p("ADD Opportunities"),
-            ui.p(f"Value: ${add.get('total_impact', 0):,.0f}", class_="small text-success"),
+            ui.p(f"Value: ${value:,.0f}", class_="small text-success"),
             class_="metric-card"
         )
 
     @output
     @render.ui
     def recon_delete_requirements():
-        dash = reconciler.get_reconciliation_dashboard()
-        dlt = dash.get("delete_requirements", {})
-        count = dlt.get("count", 0)
+        data = reconciliation_data.get() or {}
+        summary = data.get("summary", {})
+        count = summary.get("total_delete_required", 0)
+        risk_val = summary.get("delete_financial_risk", 0)
+        deletes = data.get("delete_recommendations", [])
+        if not count and deletes:
+            count = len(deletes)
+        if not risk_val and deletes:
+            risk_val = sum(abs(d.get("financial_impact", 0) or 0) for d in deletes)
         risk_class = "metric-card risk-red" if count > 10 else "metric-card"
         return ui.div(
             ui.h3(str(count)),
             ui.p("DELETE Requirements"),
-            ui.p(f"Risk: ${dlt.get('total_impact', 0):,.0f}", class_="small text-danger"),
+            ui.p(f"Risk: ${risk_val:,.0f}", class_="small text-danger"),
             class_=risk_class
         )
 
     @output
     @render.ui
     def recon_net_impact():
-        dash = reconciler.get_reconciliation_dashboard()
-        net = dash.get("net_financial_impact", 0)
+        data = reconciliation_data.get() or {}
+        summary = data.get("summary", {})
+        net = summary.get("net_financial_impact", 0)
         net_class = "text-success" if net >= 0 else "text-danger"
         return ui.div(
             ui.h3(f"${abs(net):,.0f}", class_=net_class),
@@ -1396,8 +1419,12 @@ def server(input, output, session):
     @output
     @render.ui
     def recon_action_rate():
-        dash = reconciler.get_reconciliation_dashboard()
-        rate = dash.get("action_rate", 0)
+        data = reconciliation_data.get() or {}
+        adds = data.get("add_recommendations", [])
+        deletes = data.get("delete_recommendations", [])
+        total = len(adds) + len(deletes)
+        acted = total
+        rate = (acted / total * 100) if total > 0 else 0
         return ui.div(
             ui.h3(f"{rate:.1f}%"),
             ui.p("Action Rate"),
