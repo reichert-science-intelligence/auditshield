@@ -119,33 +119,26 @@ app_ui = ui.page_fluid(
                     });
                 });
                 // Auto-close sidebar/offcanvas after action buttons (mobile)
-                (function(){
+                function setupSidebarAutoClose() {
                     var ids = ['create_audit','run_mock_audit','score_charts','schedule_session','run_reconciliation','generate_forecast','calculate_roi','get_all_recommendations'];
-                    function attach() {
-                        ids.forEach(function(id) {
-                            var btn = document.getElementById(id) || document.querySelector('[id$="' + id + '"]');
-                            if (btn && !btn.dataset.sbClose) {
-                                btn.dataset.sbClose = '1';
-                                btn.addEventListener('click', function() {
-                                    setTimeout(function() {
-                                        var off = document.querySelector('.offcanvas.show');
-                                        if (off && window.innerWidth < 992) {
-                                            if (typeof bootstrap !== 'undefined') {
-                                                var inst = bootstrap.Offcanvas.getInstance(off);
-                                                if (inst) inst.hide();
-                                            } else {
-                                                var closeBtn = off.querySelector('[data-bs-dismiss="offcanvas"]');
-                                                if (closeBtn) closeBtn.click();
-                                            }
-                                        }
-                                    }, 350);
-                                });
-                            }
-                        });
-                    }
-                    attach();
-                    setTimeout(attach, 1500);
-                })();
+                    ids.forEach(function(id) {
+                        var btn = document.getElementById(id) || document.querySelector('[id$="' + id + '"]');
+                        if (btn && !btn.dataset.sbClose) {
+                            btn.dataset.sbClose = '1';
+                            btn.addEventListener('click', function() {
+                                setTimeout(function() {
+                                    var off = document.querySelector('.offcanvas.show');
+                                    if (off && window.innerWidth < 992 && typeof bootstrap !== 'undefined') {
+                                        var inst = bootstrap.Offcanvas.getInstance(off);
+                                        if (inst) inst.hide();
+                                    }
+                                }, 300);
+                            });
+                        }
+                    });
+                }
+                setupSidebarAutoClose();
+                setTimeout(setupSidebarAutoClose, 2000);
             });
         """)
     ),
@@ -1266,23 +1259,34 @@ def server(input, output, session):
             target_rate = float(raw if raw is not None else 95) / 100.0
             print(f"[ROI] BUTTON CLICKED! Target: {target_rate:.1%}")
             baseline_rate = 0.85
-            current_exposure = 2500000
+            exp = exposure_data.get() or {}
+            current_exposure = exp.get("current_exposure") or 2500000
             improvement = target_rate - baseline_rate
-            cost_per_point = 18000
-            total_investment = abs(improvement * 100 * cost_per_point)
-            exposure_reduction = improvement * current_exposure
-            penalty_rate = 0.03
-            penalties_avoided = abs(exposure_reduction * penalty_rate)
-            net_benefit = penalties_avoided - total_investment
-            roi_pct = (net_benefit / total_investment * 100) if total_investment > 0 else 0
-            training_cost = total_investment * 0.6
+
+            if improvement > 0:
+                cost_per_point = 18000
+                total_investment = improvement * 100 * cost_per_point
+                risk_reduction = current_exposure * improvement
+                penalties_avoided = risk_reduction * 0.15
+                net_benefit = penalties_avoided - total_investment
+                roi_pct = (net_benefit / total_investment * 100) if total_investment > 0 else 0
+                training_cost = total_investment * 0.6
+                providers_remediated = max(1, int(improvement * 100))
+            else:
+                total_investment = 0
+                penalties_avoided = 0
+                net_benefit = 0
+                roi_pct = 0
+                training_cost = 0
+                providers_remediated = 0
+
             payload = dict(
                 total_investment=int(total_investment),
                 training_cost=int(training_cost),
                 total_savings=int(penalties_avoided),
                 net_roi=int(net_benefit),
                 roi_percentage=round(roi_pct, 1),
-                providers_remediated=max(1, int(improvement * 100)),
+                providers_remediated=providers_remediated,
             )
             roi_results_data.set(payload)
             print(f"[ROI] DATA SET! Investment: ${int(total_investment):,}, ROI: {roi_pct:.1f}%")
