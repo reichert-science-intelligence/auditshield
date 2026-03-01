@@ -109,37 +109,44 @@ app_ui = ui.page_fluid(
             body { padding-bottom: 30px !important; }
         """),
         ui.tags.script("""
-            document.addEventListener('DOMContentLoaded', function() {
-                document.querySelectorAll('.nav-link, [role="tab"]').forEach(function(link) {
-                    link.addEventListener('click', function() {
-                        var collapse = document.querySelector('.navbar-collapse');
-                        if (collapse && collapse.classList.contains('show')) {
-                            collapse.classList.remove('show');
-                        }
+            (function(){
+                'use strict';
+                document.addEventListener('DOMContentLoaded', function() {
+                    document.querySelectorAll('.nav-link, [role="tab"]').forEach(function(link) {
+                        link.addEventListener('click', function() {
+                            var collapse = document.querySelector('.navbar-collapse');
+                            if (collapse && collapse.classList.contains('show')) collapse.classList.remove('show');
+                        });
                     });
                 });
-                // Auto-close sidebar/offcanvas after action buttons (mobile)
-                function setupSidebarAutoClose() {
-                    var ids = ['create_audit','run_mock_audit','score_charts','schedule_session','run_reconciliation','generate_forecast','calculate_roi','get_all_recommendations'];
-                    ids.forEach(function(id) {
-                        var btn = document.getElementById(id) || document.querySelector('[id$="' + id + '"]');
-                        if (btn && !btn.dataset.sbClose) {
-                            btn.dataset.sbClose = '1';
-                            btn.addEventListener('click', function() {
-                                setTimeout(function() {
-                                    var off = document.querySelector('.offcanvas.show');
-                                    if (off && window.innerWidth < 992 && typeof bootstrap !== 'undefined') {
-                                        var inst = bootstrap.Offcanvas.getInstance(off);
-                                        if (inst) inst.hide();
-                                    }
-                                }, 300);
-                            });
-                        }
-                    });
+                function closeSidebar() {
+                    try {
+                        var open = document.querySelectorAll('.offcanvas.show');
+                        open.forEach(function(canvas) {
+                            if (typeof bootstrap !== 'undefined') {
+                                var inst = bootstrap.Offcanvas.getInstance(canvas);
+                                if (inst) inst.hide();
+                                else { var ni = new bootstrap.Offcanvas(canvas); ni.hide(); }
+                            }
+                        });
+                    } catch (e) {}
                 }
-                setupSidebarAutoClose();
-                setTimeout(setupSidebarAutoClose, 2000);
-            });
+                function attachCloser(id) {
+                    var btn = document.getElementById(id) || document.querySelector('[id$="' + id + '"]');
+                    if (btn && !btn.dataset.sbClose) {
+                        btn.dataset.sbClose = '1';
+                        btn.addEventListener('click', function() { setTimeout(closeSidebar, 250); });
+                    }
+                }
+                function setupAll() {
+                    ['create_audit','run_mock_audit','score_charts','schedule_session','run_reconciliation','generate_forecast','calculate_roi','get_all_recommendations'].forEach(attachCloser);
+                }
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', setupAll);
+                } else { setupAll(); }
+                setTimeout(setupAll, 1000);
+                setTimeout(setupAll, 3000);
+            })();
         """)
     ),
     ui.page_navbar(
@@ -1256,40 +1263,50 @@ def server(input, output, session):
     def calculate_remediation_roi():
         try:
             raw = input.target_validation_rate()
-            target_rate = float(raw if raw is not None else 95) / 100.0
-            print(f"[ROI] BUTTON CLICKED! Target: {target_rate:.1%}")
-            baseline_rate = 0.85
+            target = float(raw if raw is not None else 95) / 100.0
+            print(f"[ROI] BUTTON CLICKED! Target: {target:.1%}")
+
             exp = exposure_data.get() or {}
             current_exposure = exp.get("current_exposure") or 2500000
-            improvement = target_rate - baseline_rate
+            baseline = exp.get("current_validation_rate") or 0.791
+            if baseline > 0:
+                baseline = baseline / 100.0
+            improvement = target - baseline
 
-            if improvement > 0:
-                cost_per_point = 18000
-                total_investment = improvement * 100 * cost_per_point
-                risk_reduction = current_exposure * improvement
-                penalties_avoided = risk_reduction * 0.15
-                net_benefit = penalties_avoided - total_investment
-                roi_pct = (net_benefit / total_investment * 100) if total_investment > 0 else 0
-                training_cost = total_investment * 0.6
-                providers_remediated = max(1, int(improvement * 100))
+            if improvement <= 0:
+                payload = dict(
+                    total_investment=0,
+                    training_cost=0,
+                    total_savings=0,
+                    net_roi=0,
+                    roi_percentage=0.0,
+                    providers_remediated=0,
+                )
             else:
-                total_investment = 0
-                penalties_avoided = 0
-                net_benefit = 0
-                roi_pct = 0
-                training_cost = 0
-                providers_remediated = 0
+                providers = 10
+                cost_per_provider = 15000
+                cost_per_point = 180 * providers
+                total_investment = (providers * cost_per_provider) + (improvement * 100 * cost_per_point)
+                training_cost = providers * cost_per_provider
+                risk_reduction_rate = improvement * 2.5
+                annual_exposure_reduction = current_exposure * risk_reduction_rate
+                penalty_avoidance = annual_exposure_reduction * 0.05
+                star_rating_bonus = improvement * 100 * 5000
+                expected_savings = penalty_avoidance + star_rating_bonus
+                net_benefit = expected_savings - total_investment
+                roi_pct = (net_benefit / total_investment * 100) if total_investment > 0 else 0
 
-            payload = dict(
-                total_investment=int(total_investment),
-                training_cost=int(training_cost),
-                total_savings=int(penalties_avoided),
-                net_roi=int(net_benefit),
-                roi_percentage=round(roi_pct, 1),
-                providers_remediated=providers_remediated,
-            )
+                payload = dict(
+                    total_investment=int(total_investment),
+                    training_cost=int(training_cost),
+                    total_savings=int(expected_savings),
+                    net_roi=int(net_benefit),
+                    roi_percentage=round(roi_pct, 1),
+                    providers_remediated=providers,
+                )
+
             roi_results_data.set(payload)
-            print(f"[ROI] DATA SET! Investment: ${int(total_investment):,}, ROI: {roi_pct:.1f}%")
+            print(f"[ROI] DATA SET! Investment: ${payload['total_investment']:,}, Savings: ${payload['total_savings']:,}, ROI: {payload['roi_percentage']:.1f}%")
         except Exception as e:
             print(f"[ROI] ERROR: {e}")
             roi_results_data.set({
