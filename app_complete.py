@@ -13,8 +13,10 @@ from pathlib import Path
 
 def check_and_initialize():
     """Check if database exists and initialize if needed"""
-    db_dir = Path(__file__).resolve().parent
-    db_path = db_dir / "auditshield.db"
+    import os
+    db_path = Path(os.environ.get("SQLITE_PATH", "auditshield.db"))
+    if not db_path.is_absolute():
+        db_path = Path(__file__).resolve().parent / str(db_path)
 
     if not db_path.exists():
         print("=" * 80)
@@ -46,7 +48,13 @@ def check_and_initialize():
 check_and_initialize()
 
 # Import main app AFTER initialization
-from app import app
+try:
+    from app import app
+except Exception as e:
+    import traceback
+    print("FATAL: Failed to import app")
+    traceback.print_exc()
+    sys.exit(1)
 
 # Run the app
 if __name__ == "__main__":

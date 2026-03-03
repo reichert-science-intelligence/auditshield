@@ -24,6 +24,8 @@ EXPOSE 7860
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV STARTUP_TIMEOUT=300
+# HuggingFace /app is read-only - use /tmp for SQLite
+ENV SQLITE_PATH=/tmp/auditshield.db
 
 # Run app_complete.py which handles auto-initialization and PORT env var
 CMD ["python", "app_complete.py"]

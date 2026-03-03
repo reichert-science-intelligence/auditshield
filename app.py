@@ -2152,4 +2152,9 @@ def server(input, output, session):
 
 
 app_dir = Path(__file__).resolve().parent
-app = App(app_ui, server, static_assets=app_dir / "www")
+www_dir = app_dir / "www"
+# Only add static_assets if www exists (HF Docker may have different layout)
+if www_dir.exists():
+    app = App(app_ui, server, static_assets=www_dir)
+else:
+    app = App(app_ui, server)
