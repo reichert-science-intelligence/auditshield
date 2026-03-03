@@ -5,6 +5,7 @@ Integrates Phase 1 (Provider Scorecard, Mock Audit, Financial Impact),
 Phase 2 (RADV Command Center, Chart Selection AI, Education Tracker), and
 Phase 3 (Real-Time Validation, HCC Reconciliation, Compliance Forecast, Regulatory Intel, EMR Rules, Executive View).
 """
+from pathlib import Path
 from shiny import App, render, ui, reactive
 import pandas as pd
 import plotly.express as px
@@ -37,6 +38,26 @@ def format_date_mdy(date_value):
 def _fmt_date(s):
     """Format date for display as MM/DD/YYYY (American format)."""
     return format_date_mdy(s)
+
+
+def create_footer():
+    """Footer with Resources links, data disclaimer, and copyright."""
+    return ui.div(
+        ui.div(
+            ui.a("About", href="/starguard_about.html", target="_blank", style="color: #40B5AD; text-decoration: none;"),
+            " | ",
+            ui.a("Services", href="/starguard_services.html", target="_blank", style="color: #40B5AD; text-decoration: none;"),
+            " | ",
+            ui.a("GitHub", href="https://github.com/StarGuardAi", target="_blank", style="color: #40B5AD; text-decoration: none;"),
+            " | ",
+            ui.a("LinkedIn", href="https://www.linkedin.com/in/robert-reichert-423023302/", target="_blank", style="color: #40B5AD; text-decoration: none;"),
+            style="text-align: center; margin-bottom: 8px;",
+        ),
+        ui.p("All data shown are synthetic and generated for demonstration purposes only.", style="text-align: center; font-size: 12px; margin: 4px 0; color: #666;"),
+        ui.p("© 2026 Robert Reichert. All rights reserved.", style="text-align: center; font-size: 11px; margin: 0; color: #888;"),
+        style="background: #f5f7fa; padding: 20px; margin-top: 30px; border-radius: 12px;",
+        class_="mt-4"
+    )
 
 
 # Phase 1 Imports
@@ -107,6 +128,11 @@ app_ui = ui.page_fluid(
             .demo-banner { background: #fff3cd; border: 2px solid #ffc107; padding: 10px 20px; margin: 10px 0; border-radius: 5px; text-align: center; font-weight: bold; }
             .demo-banner-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #fff3cd; border-top: 1px solid #ffc107; padding: 4px 10px; text-align: center; font-size: 11px; font-weight: normal; z-index: 1000; opacity: 0.9; }
             body { padding-bottom: 30px !important; }
+            /* Force navbar tabs visible on desktop - prevent hamburger collapse */
+            @media (min-width: 768px) {
+                .navbar-collapse { display: flex !important; }
+                .navbar-toggler { display: none !important; }
+            }
         """),
         ui.tags.script("""
             (function(){
@@ -501,123 +527,41 @@ app_ui = ui.page_fluid(
             )
         ),
 
-        # Tab 13: About
+        # Tab 13: About (top-level tab with iframe - moved to end)
         ui.nav_panel(
             "About",
-            ui.card(
-                ui.card_header(
-                    ui.HTML("""
-                        <div style="text-align: center;">
-                            <h2>AuditShield-Live</h2>
-                            <p style="color: #666;">Healthcare AI Analytics Platform</p>
-                        </div>
-                    """)
+            ui.div(
+                ui.tags.iframe(
+                    src="/starguard_about.html",
+                    width="100%",
+                    height="800px",
+                    style="border: none;",
+                    title="About StarGuard AI",
                 ),
-                ui.layout_columns(
-                    ui.div(
-                        ui.HTML(
-                            f'''
-                            <div style="text-align: center;">
-                                <img src="{f'data:image/png;base64,{AVATAR_BASE64}' if AVATAR_BASE64 else 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyMDAnIGhlaWdodD0nMjAwJyB2aWV3Qm94PScwIDAgMjAwIDIwMCc+PGNpcmNsZSBjeD0nMTAwJyBjeT0nMTAwJyByPScxMDAnIGZpbGw9JyMwMDc3YjUnLz48dGV4dCB4PScxMDAnIHk9JzEyNScgdGV4dC1hbmNob3I9J21pZGRsZScgZmlsbD0nd2hpdGUnIGZvbnQtc2l6ZT0nNzInIGZvbnQtZmFtaWx5PSdBcmlhbCcgZm9udC13ZWlnaHQ9J2JvbGQnPlJSPC90ZXh0Pjwvc3ZnPg=='}"
-                                     style="width: 200px; height: 200px; border-radius: 50%; margin: 20px auto; display: block;
-                                            border: 4px solid #0077b5; object-fit: cover;">
-                                <h3 style="margin: 10px 0;">Robert Reichert</h3>
-                                <p style="color: #666; margin: 5px 0;">Healthcare Data Scientist & AI Architect</p>
-                                <p style="margin: 15px 0;">
-                                    <a href="https://www.linkedin.com/in/robertreichert-healthcareai/" target="_blank"
-                                       style="display: inline-block; padding: 10px 20px; background: #0077b5; color: white;
-                                       text-decoration: none; border-radius: 4px; font-weight: bold;">
-                                        Connect on LinkedIn
-                                    </a>
-                                </p>
-                            </div>
-                        ''')
-                    ),
-                    ui.div(
-                        ui.markdown(dedent("""
-                        ### Platform Overview
+                style="width: 100%;"
+            )
+        ),
 
-                        AuditShield-Live is a comprehensive healthcare analytics platform demonstrating production-grade AI capabilities for Medicare Advantage quality improvement and RADV audit defensibility.
-
-                        ### Core Features
-
-                        - **RADV Audit Defense** - 25-week timeline tracking and simulation
-                        - **Mock Audit Predictor** - CMS audit outcome forecasting
-                        - **HCC Reconciliation** - AI-powered chart review recommendations
-                        - **Chart Selection AI** - Agentic RAG for optimal RADV submission
-                        - **Compliance Forecasting** - 12-month Star Ratings prediction
-                        - **Financial Impact Analysis** - ROI modeling for quality initiatives
-                        - **Real-Time Validation** - M.E.A.T. compliance monitoring
-                        - **Provider Education** - TPE session tracking and effectiveness
-                        - **Regulatory Intelligence** - Automated CMS policy monitoring
-                        - **EMR Validation Rules** - Dynamic clinical documentation checks
-                        - **Executive Dashboard** - Strategic KPI tracking
-
-                        ### Technical Architecture
-
-                        **AI/ML Stack:** Anthropic Claude (Sonnet 4), Compound AI System, Context Engineering Framework
-
-                        **Application Stack:** Python 3.11, Shiny for Python, SQLite, Plotly, Docker
-
-                        **Deployment:** HuggingFace Spaces, GitHub, Automated initialization
-
-                        ### Innovation Highlights
-
-                        - **Agentic RAG** - Claude autonomously scores 100+ charts using multi-step reasoning
-                        - **Compound AI Engineering** - Multiple AI systems with validation and consensus
-                        - **Production-Ready Architecture** - Defensive programming, comprehensive error handling
-
-                        ### Related Platforms
-
-                        **StarGuard AI** - Full healthcare analytics suite
-                        - **Mobile Edition** - iOS/Android native apps for field validation
-                        - **Desktop Edition** - Enterprise deployment with PostgreSQL backend
-
-                        📱 [StarGuard Mobile Demo](https://rreichert-starguardai.hf.space)
-                        💻 [StarGuard Desktop](https://rreichert-starguard-desktop.hf.space)
-
-                        ### For Recruiters & Hiring Managers
-
-                        - ✅ Full-stack Python development
-                        - ✅ AI/ML integration - Production LLM implementation
-                        - ✅ Healthcare domain expertise - 22+ years in MA/HEDIS/HCC
-                        - ✅ Cloud deployment - Docker, automated CI/CD
-                        - ✅ UX design - Professional, responsive interfaces
-                        - ✅ Database design - Schema evolution, data modeling
-
-                        **Documented Impact:** $148M+ in cost savings across UPMC, Aetna, TriWest, BCBS
-
-                        ### Contact
-
-                        **Robert Reichert** - Healthcare Data Scientist & AI Architect
-                        Seeking remote contract projects for American plans, startups, and governmental organizations.
-
-                        📧 [Contact via LinkedIn](https://www.linkedin.com/in/robertreichert-healthcareai/)
-
-                        ---
-
-                        © 2026 Robert Reichert. All rights reserved.
-                        """))
-                    ),
-                    col_widths=(4, 8)
-                )
+        # Tab 14: Services & Pricing (top-level tab with iframe - moved to end)
+        ui.nav_panel(
+            "Services & Pricing",
+            ui.div(
+                ui.tags.iframe(
+                    src="/starguard_services.html",
+                    width="100%",
+                    height="800px",
+                    style="border: none;",
+                    title="Services & Market Insights",
+                ),
+                style="width: 100%;"
             )
         ),
 
         title="AuditShield-Live - Phase 1+2+3",
-        id="main_nav"
+        id="main_nav",
+        navbar_options=ui.navbar_options(collapsible=False)
     ),
-    ui.div(
-        ui.HTML("""
-            All data shown is synthetic and generated for demonstration purposes only
-            <br>
-            <span style="font-size: 10px; opacity: 0.7;">
-                © 2026 Robert Reichert. All rights reserved.
-                Unauthorized reproduction or distribution prohibited.
-            </span>
-        """),
-        class_="demo-banner-footer"
-    )
+    create_footer()
 )
 
 # ==================== SERVER LOGIC ====================
@@ -2207,4 +2151,5 @@ def server(input, output, session):
         return ui.div(ui.tags.ul(*[ui.tags.li(a) for a in actions]))
 
 
-app = App(app_ui, server)
+app_dir = Path(__file__).resolve().parent
+app = App(app_ui, server, static_assets=app_dir / "www")

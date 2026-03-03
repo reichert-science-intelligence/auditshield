@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare AI Services & Market Insights | StarGuard AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Darker+Grotesque:wght@400;600;700;900&family=IBM+Plex+Mono:wght@400;500&family=Spectral:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #2B5F8C;
+            --accent-teal: #40B5AD;
+            --deep-navy: #1A3A52;
+            --soft-gray: #F7F9FB;
+            --text-dark: #1E2B3A;
+            --text-medium: #4A5568;
+            --text-light: #718096;
+            --border-light: #E2E8F0;
+            --success-green: #48BB78;
+            --warning-amber: #F6AD55;
+            --highlight-purple: #9F7AEA;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Spectral', Georgia, serif;
+            color: var(--text-dark);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--deep-navy) 0%, var(--primary-blue) 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 60px 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(27, 58, 82, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(64, 181, 173, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 14px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-family: 'Darker Grotesque', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .cta-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 14px 32px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-family: 'Darker Grotesque', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .cta-primary {
+            background: var(--accent-teal);
+            color: white;
+            box-shadow: 0 4px 15px rgba(64, 181, 173, 0.4);
+        }
+
+        .cta-primary:hover {
+            background: #36a39d;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(64, 181, 173, 0.5);
+        }
+
+        .cta-secondary {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .cta-secondary:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(27, 58, 82, 0.08);
+        }
+
+        .section-title {
+            font-family: 'Darker Grotesque', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--deep-navy);
+            margin-bottom: 15px;
+        }
+
+        .section-subtitle {
+            color: var(--text-medium);
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--accent-teal);
+        }
+
+        .section-text {
+            color: var(--text-medium);
+            font-size: 1.05rem;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        /* Market Shift Callout */
+        .market-shift {
+            background: var(--gradient-1);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 30px 0;
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .market-shift h3 {
+            font-family: 'Darker Grotesque', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .market-shift p {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            opacity: 0.95;
+        }
+
+        /* Services Table */
+        .services-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 30px 0;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .services-table thead {
+            background: var(--deep-navy);
+            color: white;
+        }
+
+        .services-table th {
+            padding: 18px 20px;
+            text-align: left;
+            font-family: 'Darker Grotesque', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .services-table tbody tr {
+            background: white;
+            border-bottom: 1px solid var(--border-light);
+            transition: background 0.2s ease;
+        }
+
+        .services-table tbody tr:hover {
+            background: var(--soft-gray);
+        }
+
+        .services-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .services-table td {
+            padding: 20px;
+            color: var(--text-medium);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .services-table .service-name {
+            font-weight: 600;
+            color: var(--text-dark);
+            font-family: 'Darker Grotesque', sans-serif;
+            font-size: 1.1rem;
+        }
+
+        .services-table .use-case {
+            color: var(--text-medium);
+        }
+
+        .services-table .demand-reason {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Pricing Cards */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .pricing-card {
+            background: white;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            padding: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pricing-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-1);
+        }
+
+        .pricing-card:hover {
+            border-color: var(--accent-teal);
+            box-shadow: 0 10px 30px rgba(64, 181, 173, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .pricing-card.featured {
+            border-color: var(--accent-teal);
+            box-shadow: 0 10px 40px rgba(64, 181, 173, 0.3);
+        }
+
+        .pricing-card.featured::before {
+            background: var(--accent-teal);
+        }
+
+        .pricing-tier {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--accent-teal);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .pricing-title {
+            font-family: 'Darker Grotesque', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--deep-navy);
+            margin-bottom: 15px;
+        }
+
+        .pricing-range {
+            font-family: 'Darker Grotesque', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--primary-blue);
+            margin-bottom: 15px;
+        }
+
+        .pricing-range span {
+            font-size: 1.2rem;
+            color: var(--text-light);
+            font-weight: 400;
+        }
+
+        .pricing-focus {
+            color: var(--text-medium);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .pricing-details {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .pricing-details li {
+            padding: 8px 0 8px 28px;
+            position: relative;
+            color: var(--text-medium);
+            font-size: 0.9rem;
+        }
+
+        .pricing-details li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--accent-teal);
+            font-weight: 700;
+        }
+
+        /* Project Pricing */
+        .project-pricing {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .project-pricing h3 {
+            font-family: 'Darker Grotesque', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--deep-navy);
+            margin-bottom: 20px;
+        }
+
+        .project-pricing-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .project-pricing-item:last-child {
+            border-bottom: none;
+        }
+
+        .project-name {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .project-duration {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .project-cost {
+            font-family: 'Darker Grotesque', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        /* Audience Segments */
+        .audience-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .audience-card {
+            background: white;
+            border-left: 5px solid var(--accent-teal);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .audience-card h4 {
+            font-family: 'Darker Grotesque', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--deep-navy);
+            margin-bottom: 10px;
+        }
+
+        .audience-role {
+            color: var(--text-medium);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .audience-list {
+            list-style: none;
+            margin: 15px 0;
+        }
+
+        .audience-list li {
+            padding: 6px 0 6px 20px;
+            position: relative;
+            color: var(--text-medium);
+            font-size: 0.9rem;
+        }
+
+        .audience-list li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--accent-teal);
+        }
+
+        /* Distribution Strategy */
+        .distribution-strategy {
+            background: var(--gradient-2);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            margin: 30px 0;
+            box-shadow: 0 10px 40px rgba(245, 87, 108, 0.3);
+        }
+
+        .distribution-strategy h3 {
+            font-family: 'Darker Grotesque', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+        }
+
+        .strategy-section {
+            margin-bottom: 30px;
+        }
+
+        .strategy-section h4 {
+            font-family: 'Darker Grotesque', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .strategy-list {
+            list-style: none;
+            margin: 10px 0;
+        }
+
+        .strategy-list li {
+            padding: 10px 0 10px 30px;
+            position: relative;
+            opacity: 0.95;
+            line-height: 1.6;
+        }
+
+        .strategy-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.2);
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .strategy-highlight {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--deep-navy);
+            color: white;
+            padding: 30px 40px;
+            border-radius: 16px;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .footer-text {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        .footer-copyright {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 0.85rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .hero {
+                padding: 40px 25px;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+
+            .content-section {
+                padding: 25px;
+            }
+
+            .section-title {
+                font-size: 1.8rem;
+            }
+
+            .services-table {
+                font-size: 0.85rem;
+            }
+
+            .services-table th,
+            .services-table td {
+                padding: 12px;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-group {
+                flex-direction: column;
+            }
+
+            .cta-button {
+                text-align: center;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .content-section {
+            animation: fadeInUp 0.6s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .content-section:nth-child(2) { animation-delay: 0.1s; }
+        .content-section:nth-child(3) { animation-delay: 0.2s; }
+        .content-section:nth-child(4) { animation-delay: 0.3s; }
+        .content-section:nth-child(5) { animation-delay: 0.4s; }
+        .content-section:nth-child(6) { animation-delay: 0.5s; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Hero -->
+        <div class="hero">
+            <div class="hero-content">
+                <div class="hero-badge">Market Intelligence Report</div>
+                <h1>Healthcare AI Services</h1>
+                <p class="hero-subtitle">
+                    Production-grade AI engineering is redefining healthcare analytics. Here's what decision-makers need to know about market demand, pricing, and competitive positioning.
+                </p>
+                <div class="cta-group">
+                    <a href="mailto:reichert.starguardai@gmail.com" class="cta-button cta-primary">Schedule Consultation</a>
+                    <a href="starguard_about.html" class="cta-button cta-secondary">View Platform Overview</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Market Shift -->
+        <div class="content-section">
+            <h2 class="section-title">The Market Shift</h2>
+            <p class="section-subtitle">From Generic Chatbots to Production-Grade AI Orchestration</p>
+
+            <div class="market-shift">
+                <h3>🎯 Why This Matters Now</h3>
+                <p>
+                    In healthcare and health plan (payer) sectors, demand is shifting from generic chatbots to <strong>high-reliability, compliant data orchestration</strong>. Because these industries are heavily regulated (HIPAA, SOC2), the highest demand is for engineers who can build <strong>Production-Grade AI</strong> rather than just wrappers around commercial APIs.
+                </p>
+            </div>
+
+            <p class="section-text">
+                Generic consulting firms lack the healthcare domain expertise and regulatory compliance knowledge required for production deployments. Organizations need specialists who understand:
+            </p>
+            <ul class="audience-list" style="margin-left: 20px;">
+                <li>Medicare Advantage Star Ratings and HEDIS quality measures</li>
+                <li>HIPAA-compliant architecture and PHI data handling</li>
+                <li>CMS regulatory requirements and audit defensibility</li>
+                <li>Healthcare-specific AI validation and bias mitigation</li>
+                <li>Production-grade deployment with SOC2 compliance</li>
+            </ul>
+        </div>
+
+        <!-- High-Demand Services -->
+        <div class="content-section">
+            <h2 class="section-title">High-Demand AI Services</h2>
+            <p class="section-subtitle">Healthcare & Health Plan (Payer) Focus Areas</p>
+
+            <table class="services-table">
+                <thead>
+                    <tr>
+                        <th>Service Category</th>
+                        <th>Specific Use Case</th>
+                        <th>Why It's In Demand</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="service-name">Clinical RAG Systems</td>
+                        <td class="use-case">Semantic search across EHR and medical journals</td>
+                        <td class="demand-reason">Doctors spend too much time searching for patient history; RAG automates discovery</td>
+                    </tr>
+                    <tr>
+                        <td class="service-name">Claims & Billing Automation</td>
+                        <td class="use-case">Automating Prior Authorization and identifying coding errors</td>
+                        <td class="demand-reason">This is the #1 "pain point" for health plans; directly impacts bottom line</td>
+                    </tr>
+                    <tr>
+                        <td class="service-name">Privacy-Preserving AI</td>
+                        <td class="use-case">Implementing PII masking and local LLMs (Llama 3/Mistral)</td>
+                        <td class="demand-reason">Payers are terrified of sending patient data to OpenAI; need local, secure deployments</td>
+                    </tr>
+                    <tr>
+                        <td class="service-name">Predictive Care Gap Analysis</td>
+                        <td class="use-case">Using LLMs to identify patients who missed screenings from unstructured notes</td>
+                        <td class="demand-reason">Directly improves "Star Ratings" and government reimbursement for health plans</td>
+                    </tr>
+                    <tr>
+                        <td class="service-name">RADV Audit Defense</td>
+                        <td class="use-case">AI-powered chart review and HCC validation</td>
+                        <td class="demand-reason">Prevents millions in CMS payment recoupment; high-stakes compliance requirement</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Contract Pricing -->
+        <div class="content-section">
+            <h2 class="section-title">Contract Pay Ranges</h2>
+            <p class="section-subtitle">US Market - Full Stack AI Generative Specialist</p>
+
+            <p class="section-text">
+                For a <strong>Full Stack AI Generative specialist</strong>, rates are significantly higher than standard full-stack development because you are charging for <strong>domain expertise + security + AI proficiency</strong>.
+            </p>
+
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="pricing-tier">Mid-Level</div>
+                    <div class="pricing-title">Contractor</div>
+                    <div class="pricing-range">$125–$175<span>/hour</span></div>
+                    <div class="pricing-focus">
+                        <strong>Focus:</strong> Building UI, integrating APIs, basic prompt engineering
+                    </div>
+                    <ul class="pricing-details">
+                        <li>Frontend/backend integration</li>
+                        <li>API development</li>
+                        <li>Prompt engineering</li>
+                        <li>Application deployment</li>
+                    </ul>
+                </div>
+
+                <div class="pricing-card featured">
+                    <div class="pricing-tier">Senior / Lead</div>
+                    <div class="pricing-title">AI Architect</div>
+                    <div class="pricing-range">$200–$350+<span>/hour</span></div>
+                    <div class="pricing-focus">
+                        <strong>Focus:</strong> Vector database architecture, HIPAA compliance, model fine-tuning, LLMOps
+                    </div>
+                    <ul class="pricing-details">
+                        <li>System architecture design</li>
+                        <li>HIPAA/SOC2 compliance</li>
+                        <li>Model fine-tuning & optimization</li>
+                        <li>LLMOps & monitoring</li>
+                        <li>Security architecture</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="project-pricing">
+                <h3>Project-Based Pricing</h3>
+                <div class="project-pricing-item">
+                    <div>
+                        <div class="project-name">PoC (Proof of Concept)</div>
+                        <div class="project-duration">4–6 weeks of work</div>
+                    </div>
+                    <div class="project-cost">$20K – $50K</div>
+                </div>
+                <div class="project-pricing-item">
+                    <div>
+                        <div class="project-name">Production Implementation</div>
+                        <div class="project-duration">Long-term integration and scaling</div>
+                    </div>
+                    <div class="project-cost">$100K – $250K+</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Target Audiences -->
+        <div class="content-section">
+            <h2 class="section-title">Target Audiences</h2>
+            <p class="section-subtitle">Who Needs This Intelligence</p>
+
+            <div class="audience-grid">
+                <div class="audience-card">
+                    <h4>👔 Executive Decision Makers</h4>
+                    <div class="audience-role">Job Recruiters, Business Unit Directors</div>
+                    <p class="section-text"><strong>Pain Points:</strong></p>
+                    <ul class="audience-list">
+                        <li>Business case development</li>
+                        <li>Change management complexity</li>
+                        <li>Workforce adaptation challenges</li>
+                    </ul>
+                    <p class="section-text" style="margin-top: 15px;"><strong>Motivations:</strong></p>
+                    <ul class="audience-list">
+                        <li>Market leadership positioning</li>
+                        <li>Business transformation</li>
+                        <li>Revenue growth opportunities</li>
+                    </ul>
+                    <p class="section-text" style="margin-top: 15px;"><strong>Communication Style:</strong></p>
+                    <ul class="audience-list">
+                        <li>Business impact stories</li>
+                        <li>Executive summaries</li>
+                        <li>Strategic roadmaps</li>
+                    </ul>
+                </div>
+
+                <div class="audience-card">
+                    <h4>🔧 Technical Decision Makers</h4>
+                    <div class="audience-role">CIOs, CTOs, Innovation Directors, Physician Managers</div>
+                    <p class="section-text"><strong>Pain Points:</strong></p>
+                    <ul class="audience-list">
+                        <li>Implementation challenges</li>
+                        <li>ROI justification</li>
+                        <li>Technical integration complexity</li>
+                    </ul>
+                    <p class="section-text" style="margin-top: 15px;"><strong>Motivations:</strong></p>
+                    <ul class="audience-list">
+                        <li>Competitive advantage</li>
+                        <li>Operational efficiency</li>
+                        <li>Cost reduction</li>
+                    </ul>
+                    <p class="section-text" style="margin-top: 15px;"><strong>Communication Style:</strong></p>
+                    <ul class="audience-list">
+                        <li>Data-backed assertions</li>
+                        <li>Case studies with metrics</li>
+                        <li>Technical validation</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Distribution Strategy -->
+        <div class="distribution-strategy">
+            <h3>📢 Distribution & Socialization Strategy</h3>
+            <p style="margin-bottom: 30px; opacity: 0.95;">
+                How to effectively share this market intelligence with recruiters, hiring managers, and influencers:
+            </p>
+
+            <div class="strategy-section">
+                <h4>🔷 LinkedIn Strategy</h4>
+                <ul class="strategy-list">
+                    <li><strong>Weekly Posts:</strong> Highlight individual service categories (e.g., "Why Clinical RAG is the #1 request from health plans")</li>
+                    <li><strong>Carousel Posts:</strong> Break down pricing/value proposition across 5-7 slides</li>
+                    <li><strong>Long-Form Articles:</strong> "Why Healthcare Payers Need Production-Grade AI, Not Chatbots"</li>
+                    <li><strong>Engagement Ratio:</strong> 3:1 value posts to promotional posts</li>
+                </ul>
+                <div class="strategy-highlight">
+                    📊 Post 2-3x per week during prime hours (Tue-Thu, 8-10am EST)
+                </div>
+            </div>
+
+            <div class="strategy-section">
+                <h4>📧 Direct Outreach</h4>
+                <ul class="strategy-list">
+                    <li><strong>One-Page PDF:</strong> Market insights + your credentials → email to recruiters</li>
+                    <li><strong>Case Study Format:</strong> "How $148M in savings translates to ROI" → CIOs/CTOs</li>
+                    <li><strong>Executive Briefing:</strong> 3-page market analysis with pricing intelligence → Business Unit Directors</li>
+                </ul>
+                <div class="strategy-highlight">
+                    🎯 Personalize subject lines: "Production AI pricing intel for [Company] healthcare team"
+                </div>
+            </div>
+
+            <div class="strategy-section">
+                <h4>📄 Content Marketing</h4>
+                <ul class="strategy-list">
+                    <li><strong>White Paper:</strong> "The Production AI Gap in Healthcare" (8-12 pages)</li>
+                    <li><strong>Case Studies:</strong> Problem → Solution → Results format with quantifiable outcomes</li>
+                    <li><strong>Blog Posts:</strong> 1200-1500 words, educational focus with practical takeaways</li>
+                </ul>
+            </div>
+
+            <div class="strategy-section">
+                <h4>🌐 Portfolio Integration</h4>
+                <ul class="strategy-list">
+                    <li>Embed on landing page: <a href="https://tinyurl.com/bdevpdz5" style="color: white; text-decoration: underline;">tinyurl.com/bdevpdz5</a></li>
+                    <li>QR code on resume/one-pagers linking to this page</li>
+                    <li>LinkedIn "Featured" section</li>
+                    <li>Email signature with link</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Call to Action -->
+        <div class="content-section">
+            <h2 class="section-title">Ready to Discuss Your Healthcare AI Needs?</h2>
+            <p class="section-text">
+                <strong>Available March 2026</strong> for contract consulting projects. Specializing in Medicare Advantage analytics, HEDIS optimization, and production-grade AI implementation.
+            </p>
+            
+            <div class="impact-metrics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 30px 0;">
+                <div style="background: linear-gradient(135deg, var(--primary-blue) 0%, var(--accent-teal) 100%); color: white; padding: 25px; border-radius: 12px; text-align: center; box-shadow: 0 8px 25px rgba(43, 95, 140, 0.3);">
+                    <div style="font-family: 'Darker Grotesque', sans-serif; font-size: 2.5rem; font-weight: 900; margin-bottom: 5px;">$148M+</div>
+                    <div style="font-size: 0.9rem; opacity: 0.9;">Career Impact</div>
+                </div>
+                <div style="background: linear-gradient(135deg, var(--primary-blue) 0%, var(--accent-teal) 100%); color: white; padding: 25px; border-radius: 12px; text-align: center; box-shadow: 0 8px 25px rgba(43, 95, 140, 0.3);">
+                    <div style="font-family: 'Darker Grotesque', sans-serif; font-size: 2.5rem; font-weight: 900; margin-bottom: 5px;">22+</div>
+                    <div style="font-size: 0.9rem; opacity: 0.9;">Years Healthcare</div>
+                </div>
+                <div style="background: linear-gradient(135deg, var(--primary-blue) 0%, var(--accent-teal) 100%); color: white; padding: 25px; border-radius: 12px; text-align: center; box-shadow: 0 8px 25px rgba(43, 95, 140, 0.3);">
+                    <div style="font-family: 'Darker Grotesque', sans-serif; font-size: 2.5rem; font-weight: 900; margin-bottom: 5px;">93%</div>
+                    <div style="font-size: 0.9rem; opacity: 0.9;">Prediction Accuracy</div>
+                </div>
+            </div>
+
+            <div class="cta-group">
+                <a href="mailto:reichert.starguardai@gmail.com" class="cta-button cta-primary">Schedule Consultation</a>
+                <a href="https://www.linkedin.com/in/robert-reichert-423023302/" class="cta-button" style="background: #0077B5; color: white;" target="_blank">Connect on LinkedIn</a>
+                <a href="starguard_about.html" class="cta-button cta-secondary" style="background: var(--soft-gray); color: var(--text-dark);">View Platform Details</a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">
+                <strong>Important Notice:</strong> All data shown in demonstrations are synthetic and generated for demonstration purposes only. No actual patient or member data is used.
+            </p>
+            <div class="footer-copyright">
+                © 2026 Robert Reichert. All rights reserved.
+            </div>
+        </div>
+    </div>
+</body>
+</html>
