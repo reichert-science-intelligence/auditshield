@@ -559,7 +559,7 @@ app_ui = ui.page_fluid(
 
         title="AuditShield-Live - Phase 1+2+3",
         id="main_nav",
-        navbar_options=ui.navbar_options(collapsible=False)
+        # navbar_options removed for HuggingFace Shiny compatibility (older version)
     ),
     create_footer()
 )
