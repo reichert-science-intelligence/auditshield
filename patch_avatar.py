@@ -5,7 +5,7 @@ from pathlib import Path
 
 APP_DIR = Path(__file__).resolve().parent
 AVATAR_TXT = APP_DIR / "avatar_base64.txt"
-HTML_FILE = APP_DIR / "www" / "starguard_about.html"
+HTML_FILE = APP_DIR / "Artifacts" / "www" / "starguard_about.html"
 
 
 def main():
@@ -13,7 +13,7 @@ def main():
         print("ERROR: avatar_base64.txt not found")
         return 1
     if not HTML_FILE.exists():
-        print("ERROR: www/starguard_about.html not found")
+        print("ERROR: Artifacts/www/starguard_about.html not found")
         return 1
 
     avatar_b64 = AVATAR_TXT.read_text(encoding="utf-8").strip()

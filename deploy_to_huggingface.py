@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 APP_DIR = Path(__file__).resolve().parent
-WWW_DIR = APP_DIR / "www"
+WWW_DIR = APP_DIR / "Artifacts" / "www"
 
 REQUIRED_FILES = [
     "starguard_about.html",
@@ -25,7 +25,7 @@ def main():
     if not WWW_DIR.is_dir():
         errors.append("www/ directory not found")
     else:
-        print("[OK] www/ directory exists")
+        print("[OK] Artifacts/www/ directory exists")
 
     # 2. Check file sizes
     for name in REQUIRED_FILES:
@@ -53,7 +53,7 @@ def main():
     print("Deployment Checklist")
     print("-" * 60)
     checklist = [
-        ("www/ with 3 HTML files", WWW_DIR.is_dir() and all((WWW_DIR / f).exists() for f in REQUIRED_FILES)),
+        ("Artifacts/www/ with 3 HTML files", WWW_DIR.is_dir() and all((WWW_DIR / f).exists() for f in REQUIRED_FILES)),
         ("app.py has static_assets", "static_assets" in (APP_DIR / "app.py").read_text()),
         ("app.py has Resources menu", "Resources" in (APP_DIR / "app.py").read_text()),
         ("app.py has create_footer", "create_footer" in (APP_DIR / "app.py").read_text()),
@@ -67,7 +67,7 @@ def main():
     print("Suggested Git Commands")
     print("-" * 60)
     print("""
-  git add www/
+  git add Artifacts/www/
   git add app.py
   git add test_quick_check.py
   git add tests/test_integration.py

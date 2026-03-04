@@ -3,7 +3,7 @@
 from pathlib import Path
 
 APP_DIR = Path(__file__).resolve().parent
-WWW_DIR = APP_DIR / "www"
+WWW_DIR = APP_DIR / "Artifacts" / "www"
 
 REQUIRED_FILES = [
     "starguard_about.html",
@@ -27,7 +27,7 @@ def main():
     if not WWW_DIR.is_dir():
         errors.append(f"www/ directory not found at {WWW_DIR}")
     else:
-        print(f"OK: www/ directory exists")
+        print(f"OK: Artifacts/www/ directory exists")
 
     # 2. All 3 HTML files present
     for name in REQUIRED_FILES:
