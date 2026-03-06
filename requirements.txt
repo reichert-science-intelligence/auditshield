@@ -11,6 +11,11 @@ scikit-learn==1.4.0
 # Database
 psycopg2-binary==2.9.9
 
+# RADV Audit Trail — Google Sheets + Supabase parallel write
+gspread>=6.0.0
+supabase==2.10.0
+google-auth>=2.28.0
+
 # Utilities
 xlsxwriter==3.1.9
 python-dotenv==1.0.0
