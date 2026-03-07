@@ -9,6 +9,8 @@ pinned: false
 license: mit
 ---
 
+[![CI](https://github.com/reichert-science-intelligence/auditshield/actions/workflows/ci.yml/badge.svg)](https://github.com/reichert-science-intelligence/auditshield/actions/workflows/ci.yml)
+
 # AuditShield-Live 🏥
 
 **AI-Powered Medicare Advantage RADV Audit Defense Platform**
