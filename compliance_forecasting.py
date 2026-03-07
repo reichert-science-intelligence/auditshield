@@ -3,13 +3,13 @@ Compliance Forecasting - Predictive analytics for validation trends
 Forecast future validation rates, predict RADV error rates, scenario planning
 """
 import json
-import pandas as pd
-import numpy as np
-from typing import Dict, List
 from datetime import datetime, timedelta
 
-from database import get_db_manager
+import numpy as np
+import pandas as pd
 from sklearn.linear_model import LinearRegression
+
+from database import get_db_manager
 
 
 class ComplianceForecaster:
@@ -30,7 +30,7 @@ class ComplianceForecaster:
         self,
         forecast_periods: int = 12,
         confidence_level: float = 0.95,
-    ) -> Dict:
+    ) -> dict:
         """
         Generate compliance forecast for next N months
 
@@ -41,8 +41,8 @@ class ComplianceForecaster:
         if historical_data.empty or len(historical_data) < 6:
             return {"error": "Insufficient historical data"}
 
-        # Prepare features
-        X = np.array(range(len(historical_data))).reshape(-1, 1)
+        # Prepare features (X is ML convention for feature matrix)
+        X = np.array(range(len(historical_data))).reshape(-1, 1)  # noqa: N806
         y_validation = historical_data["validation_rate"].values
         y_error = historical_data["error_rate"].values
 
@@ -53,9 +53,9 @@ class ComplianceForecaster:
         model_error = LinearRegression()
         model_error.fit(X, y_error)
 
-        # Generate forecasts
+        # Generate forecasts (future_X is ML convention)
         n_historical = len(historical_data)
-        future_X = np.array(
+        future_X = np.array(  # noqa: N806
             range(n_historical, n_historical + forecast_periods)
         ).reshape(-1, 1)
 
@@ -182,7 +182,7 @@ class ComplianceForecaster:
 
     def _identify_trend_drivers(
         self, historical_data: pd.DataFrame
-    ) -> List[str]:
+    ) -> list[str]:
         """Identify factors driving the trend"""
         drivers = []
         recent_data = historical_data.tail(3)
@@ -205,7 +205,7 @@ class ComplianceForecaster:
 
         return drivers if drivers else ["Insufficient data for drivers"]
 
-    def _generate_trend_summary(self, forecasts: List[Dict]) -> Dict:
+    def _generate_trend_summary(self, forecasts: list[dict]) -> dict:
         """Generate executive summary of forecast trends"""
         first_forecast = forecasts[0]
         last_forecast = forecasts[-1]
@@ -241,7 +241,7 @@ class ComplianceForecaster:
             "breach_risk": breach_risk,
         }
 
-    def _save_forecast(self, forecast_record: Dict):
+    def _save_forecast(self, forecast_record: dict):
         """Save forecast to database"""
         param_placeholder = "%s" if self.db.db_type == "postgresql" else "?"
 
@@ -278,7 +278,7 @@ class ComplianceForecaster:
             fetch="none",
         )
 
-    def get_forecast_dashboard(self) -> Dict:
+    def get_forecast_dashboard(self) -> dict:
         """Get latest forecast for dashboard display"""
         if self.db.db_type == "postgresql":
             query = """

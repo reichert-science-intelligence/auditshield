@@ -25,10 +25,10 @@ jobs:
           pip install -e ".[dev]" 2>/dev/null || pip install -r requirements.txt
 
       - name: Ruff lint
-        run: ruff check . --config pyproject.toml || true
+        run: ruff check . --config pyproject.toml
 
       - name: Mypy type-check
-        run: mypy audit_trail.py cloud_status_badge.py suppression_banner.py hitl_admin_view.py --config-file pyproject.toml || true
+        run: mypy audit_trail.py cloud_status_badge.py suppression_banner.py hitl_admin_view.py --config-file pyproject.toml
 
       - name: Pytest
         run: pytest tests/ -v --tb=short

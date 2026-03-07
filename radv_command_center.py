@@ -3,9 +3,10 @@ RADV Command Center - Audit Response Workflow
 Manages the entire RADV audit response workflow when CMS sends an audit notice.
 """
 import json
-import pandas as pd
-from typing import Dict, List, Optional
 from datetime import datetime, timedelta
+
+import pandas as pd
+
 from database import get_db_manager
 
 
@@ -30,7 +31,7 @@ class RADVCommandCenter:
                                  contract_name: str,
                                  audit_year: int,
                                  notification_date: str,
-                                 sample_enrollees: List[Dict]) -> int:
+                                 sample_enrollees: list[dict]) -> int:
         """
         Initialize new RADV audit from CMS notice
 
@@ -96,7 +97,7 @@ class RADVCommandCenter:
 
         return audit_id
 
-    def _add_sample_enrollee(self, audit_id: int, enrollee: Dict):
+    def _add_sample_enrollee(self, audit_id: int, enrollee: dict):
         """Add an enrollee to the audit sample"""
 
         param_placeholder = '%s' if self.db.db_type == 'postgresql' else '?'
@@ -203,7 +204,7 @@ class RADVCommandCenter:
                 fetch="none"
             )
 
-    def get_audit_status(self, audit_id: int) -> Dict:
+    def get_audit_status(self, audit_id: int) -> dict:
         """
         Get comprehensive status of active audit
 
@@ -260,9 +261,9 @@ class RADVCommandCenter:
 
         submission_stats = self.db.execute_query(submission_query, (audit_id,), fetch="one")
         # Defensive: SUM returns NULL when no rows; COUNT returns 0
-        total = submission_stats.get('total') or 0
-        submitted = submission_stats.get('submitted') or 0
-        records_received = submission_stats.get('records_received') or 0
+        _total = submission_stats.get('total') or 0
+        _submitted = submission_stats.get('submitted') or 0
+        _records_received = submission_stats.get('records_received') or 0
 
         # Get task progress
         task_query = f"""
@@ -316,7 +317,7 @@ class RADVCommandCenter:
             'status_indicator': self._calculate_health_status(days_remaining, submission_stats)
         }
 
-    def _calculate_health_status(self, days_remaining: int, submission_stats: Dict) -> str:
+    def _calculate_health_status(self, days_remaining: int, submission_stats: dict) -> str:
         """
         Determine overall audit health status
 
@@ -340,7 +341,7 @@ class RADVCommandCenter:
     def update_record_request_status(self,
                                      sample_id: int,
                                      status: str,
-                                     notes: Optional[str] = None):
+                                     notes: str | None = None):
         """Update status of medical record request for an enrollee"""
 
         param_placeholder = '%s' if self.db.db_type == 'postgresql' else '?'
@@ -407,7 +408,7 @@ class RADVCommandCenter:
 
         return df
 
-    def complete_task(self, task_id: int, completion_notes: Optional[str] = None):
+    def complete_task(self, task_id: int, completion_notes: str | None = None):
         """Mark an audit task as completed"""
 
         param_placeholder = '%s' if self.db.db_type == 'postgresql' else '?'
@@ -492,8 +493,8 @@ def seed_demo_audit():
 
 
 if __name__ == "__main__":
-    from database_phase2_schema import add_phase2_schema
     from database import get_db_manager
+    from database_phase2_schema import add_phase2_schema
 
     # Add Phase 2 schema
     db = get_db_manager()

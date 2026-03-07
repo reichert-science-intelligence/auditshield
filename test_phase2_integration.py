@@ -4,11 +4,11 @@ Test all Phase 2 features are working
 
 
 def test_phase2():
+    from chart_selection_ai import ChartSelectionAI
     from database import get_db_manager
     from database_phase2_schema import add_phase2_schema
-    from radv_command_center import RADVCommandCenter
-    from chart_selection_ai import ChartSelectionAI
     from education_automation import EducationAutomation
+    from radv_command_center import RADVCommandCenter
 
     print("Testing Phase 2 Integration...")
 
@@ -31,7 +31,7 @@ def test_phase2():
 
     # Test 2: Chart Selection AI
     print("\n2. Testing Chart Selection AI...")
-    selector = ChartSelectionAI()
+    _selector = ChartSelectionAI()
     print("   Chart selector initialized OK")
 
     # Test 3: Education Automation

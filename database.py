@@ -4,14 +4,14 @@ Unified interface for SQLite (dev) and PostgreSQL (prod)
 """
 import os
 import sqlite3
-import pandas as pd
-from typing import Optional, List, Dict, Any, Tuple
-from datetime import datetime, timedelta
 from contextlib import contextmanager
-import json
+from datetime import datetime, timedelta
+from typing import Any
+
+import pandas as pd
 
 try:
-    import psycopg2
+    import psycopg2  # noqa: F401
     from psycopg2.extras import RealDictCursor
     from psycopg2.pool import SimpleConnectionPool
     POSTGRES_AVAILABLE = True
@@ -25,7 +25,7 @@ class DatabaseManager:
     Handles connection pooling, query execution, and data aggregation
     """
 
-    def __init__(self, db_type: str = "sqlite", connection_string: Optional[str] = None):
+    def __init__(self, db_type: str = "sqlite", connection_string: str | None = None):
         """
         Initialize database manager
 
@@ -70,7 +70,7 @@ class DatabaseManager:
             finally:
                 conn.close()
 
-    def execute_query(self, query: str, params: Optional[Tuple] = None,
+    def execute_query(self, query: str, params: tuple | None = None,
                      fetch: str = "all") -> Any:
         """Execute a query and return results"""
         with self.get_connection() as conn:
@@ -214,8 +214,8 @@ class DatabaseManager:
 
     def get_provider_scores(self,
                            lookback_months: int = 12,
-                           specialties: Optional[List[str]] = None,
-                           risk_tiers: Optional[List[str]] = None,
+                           specialties: list[str] | None = None,
+                           risk_tiers: list[str] | None = None,
                            min_hccs: int = 0) -> pd.DataFrame:
         """Get provider scorecard data with filters"""
         where_clauses = []
@@ -310,7 +310,7 @@ class DatabaseManager:
             return pd.DataFrame({'element': ['Monitor', 'Evaluate', 'Assess', 'Treat'], 'compliance_rate': [0.0, 0.0, 0.0, 0.0]})
         return pd.DataFrame(results)
 
-    def insert_hcc_audit(self, audit_data: Dict[str, Any]) -> int:
+    def insert_hcc_audit(self, audit_data: dict[str, Any]) -> int:
         """Insert a new HCC audit record"""
         ph = '%s' if self.db_type == 'postgresql' else '?'
         query = f"""
@@ -351,7 +351,7 @@ class DatabaseManager:
                 cursor.execute("SELECT last_insert_rowid()")
                 return cursor.fetchone()[0]
 
-    def update_hcc_audit(self, audit_id: int, validation_result: Dict[str, Any]) -> int:
+    def update_hcc_audit(self, audit_id: int, validation_result: dict[str, Any]) -> int:
         """Update an existing HCC audit record with new validation results"""
         ph = '%s' if self.db_type == 'postgresql' else '?'
         meat = validation_result.get('meat_elements', {})
@@ -466,7 +466,7 @@ class DatabaseManager:
             VALUES ({ph}, {ph}, {ph}, {ph}, {ph})
             """, (provider_id, pattern['failure_category'], pattern['hcc_category'], pattern['occurrence_count'], pattern['last_occurrence']), fetch="none")
 
-    def get_provider_hccs(self, provider_id: str, lookback_months: int = 12) -> List[Dict]:
+    def get_provider_hccs(self, provider_id: str, lookback_months: int = 12) -> list[dict]:
         """Get all HCC audit records for a provider (used by MEATValidator.batch_validate_provider)"""
         cutoff_date = datetime.now() - timedelta(days=lookback_months * 30)
         cutoff_str = cutoff_date.strftime('%Y-%m-%d')
@@ -482,7 +482,7 @@ class DatabaseManager:
         """
         return self.execute_query(query, (provider_id, cutoff_str), fetch="all")
 
-    def get_provider_info(self, provider_id: str) -> Optional[Dict]:
+    def get_provider_info(self, provider_id: str) -> dict | None:
         """Get provider metadata"""
         ph = '%s' if self.db_type == 'postgresql' else '?'
         return self.execute_query(f"SELECT provider_id, provider_name, specialty, npi FROM provider_meat_scores WHERE provider_id = {ph}", (provider_id,), fetch="one")
@@ -493,7 +493,7 @@ class DatabaseManager:
         try:
             from faker import Faker
         except ImportError:
-            Faker = None
+            Faker = None  # noqa: N806
 
         fake = Faker() if Faker else None
         specialties = ['Primary Care', 'Cardiology', 'Endocrinology', 'Nephrology', 'Pulmonology', 'Rheumatology']

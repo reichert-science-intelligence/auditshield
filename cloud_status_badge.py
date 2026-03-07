@@ -6,9 +6,11 @@
 # Layout: layout="strip" = compact horizontal bar | default = stacked sidebar
 # ─────────────────────────────────────────────────────────────
 
-from shiny import ui
-from datetime import datetime, timezone, timedelta
 import os
+from datetime import datetime, timedelta, timezone
+
+from htmltools import Tag
+from shiny import ui
 
 # ── Config: set per-app in app.py via environment or direct ──
 APP_NAME = os.environ.get("APP_NAME", "AuditShield-Live")   # or "StarGuard"
@@ -17,7 +19,7 @@ LINKEDIN_URL = "https://tinyurl.com/24523hmy"
 GITHUB_URL = "https://github.com/reichert-science-intelligence"
 
 
-def cloud_status_css() -> ui.tags.style:
+def cloud_status_css() -> Tag:
     """Inject badge CSS — call once inside app_ui head."""
     return ui.tags.style("""
         /* ── Cloud Status Badge (sidebar layout) ── */
@@ -46,7 +48,7 @@ def cloud_status_css() -> ui.tags.style:
             color: #e2e8f0;
         }
         .dot-green  { width:8px; height:8px; border-radius:50%;
-                      background:#10b981; box-shadow:0 0 6px #10b981; 
+                      background:#10b981; box-shadow:0 0 6px #10b981;
                       flex-shrink:0; animation: pulse-green 2s infinite; }
         .dot-gold   { width:8px; height:8px; border-radius:50%;
                       background:#D4AF37; box-shadow:0 0 6px #D4AF37;
@@ -124,14 +126,14 @@ def cloud_status_css() -> ui.tags.style:
     """)
 
 
-def cloud_status_badge(app_variant: str = "auditshield", layout: str = "sidebar") -> ui.div:
+def cloud_status_badge(app_variant: str = "auditshield", layout: str = "sidebar") -> Tag:
     """
     Returns the full badge div for sidebar or strip injection.
     app_variant: 'auditshield' | 'starguard'
     layout: 'sidebar' (default, stacked rows) | 'strip' (compact horizontal bar)
     """
-    EST = timezone(timedelta(hours=-5))
-    now = datetime.now(EST).strftime("%I:%M:%S %p EST")
+    est_tz = timezone(timedelta(hours=-5))
+    now = datetime.now(est_tz).strftime("%I:%M:%S %p EST")
 
     if app_variant == "auditshield":
         services = [
@@ -205,12 +207,12 @@ def cloud_status_badge(app_variant: str = "auditshield", layout: str = "sidebar"
     )
 
 
-def auditshield_badge(mode: str = "strip") -> ui.div:
+def auditshield_badge(mode: str = "strip") -> Tag:
     """AuditShield-specific badge alias. mode: 'strip' | 'sidebar'."""
     return cloud_status_badge(app_variant="auditshield", layout=mode)
 
 
-def provenance_footer(app_variant: str = "auditshield") -> ui.div:
+def provenance_footer(app_variant: str = "auditshield") -> Tag:
     """
     Sticky bottom footer — shows on every page.
     Signals production deployment to recruiters.

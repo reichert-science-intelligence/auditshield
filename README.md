@@ -9,7 +9,9 @@ pinned: false
 license: mit
 ---
 
-[![CI](https://github.com/reichert-science-intelligence/auditshield/actions/workflows/ci.yml/badge.svg)](https://github.com/reichert-science-intelligence/auditshield/actions/workflows/ci.yml)
+[![CI](https://github.com/reichert-science-intelligence/auditshield-live/actions/workflows/ci.yml/badge.svg)](https://github.com/reichert-science-intelligence/auditshield-live/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org/)
+[![Tests](https://img.shields.io/badge/tests-17%20passed-brightgreen)](https://github.com/reichert-science-intelligence/auditshield-live/actions)
 
 # AuditShield-Live 🏥
 

@@ -7,10 +7,8 @@ No live DB/API calls.
 import json
 import os
 import tempfile
-from pathlib import Path
 
 import pytest
-
 
 # ── Suppression CRUD (audit_trail) ─────────────────────────────────────────
 
@@ -81,7 +79,7 @@ def test_audit_suppression_json_roundtrip(audit_suppression_temp):
     audit_trail._AUDIT_SUPPRESSIONS_CACHE = None
     audit_trail.add_audit_suppression("AUD-1", "R1")
     audit_trail.add_audit_suppression("AUD-2", "R2")
-    with open(audit_suppression_temp, "r", encoding="utf-8") as f:
+    with open(audit_suppression_temp, encoding="utf-8") as f:
         data = json.load(f)
     assert len(data) == 2
     ids = {r["audit_id"] for r in data}
