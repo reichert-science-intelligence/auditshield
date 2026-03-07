@@ -42,6 +42,8 @@ known-first-party = ["app", "audit_trail", "cloud_status_badge"]
 
 [tool.mypy]
 python_version = "3.11"
+mypy_path = "."
+explicit_package_bases = true
 strict = true
 warn_return_any = true
 warn_unused_configs = true
