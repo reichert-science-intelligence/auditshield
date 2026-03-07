@@ -19,13 +19,13 @@ AuditShield-Live is an AI-powered Medicare Advantage RADV Audit Defense Platform
 │    ├── audit_trail_ui.py                                                     │
 │    ├── cloud_status_badge.py                                                 │
 │    ├── suppression_banner.py (Phase 2)                                       │
-│    ├── hitl_admin_view.py (Phase 2)                                           │
+│    ├── hitl_admin_view.py (Phase 2)                                          │
 │    ├── meat_validator.py, radv_command_center.py                             │
 │    ├── chart_selection_ai.py, education_automation.py                        │
-│    ├── realtime_validation.py, hcc_reconciliation.py                        │
-│    ├── compliance_forecasting.py, regulatory_intelligence.py                │
-│    ├── emr_rule_builder.py, dashboard_manager.py                            │
-│    └── database.py, financial_calculator.py, mock_audit_simulator.py        │
+│    ├── realtime_validation.py, hcc_reconciliation.py                         │
+│    ├── compliance_forecasting.py, regulatory_intelligence.py                  │
+│    ├── emr_rule_builder.py, dashboard_manager.py                             │
+│    └── database.py, financial_calculator.py, mock_audit_simulator.py          │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -72,6 +72,16 @@ User → Shiny UI → Server Handlers
 
 ---
 
+## Supabase Schema
+
+| Table | Purpose |
+|------|---------|
+| `audit_trail` | Parallel write from audit_trail.py; mirrors Google Sheets RADV audit records |
+
+Primary persistence: Google Sheets. Supabase used for parallel write when `SUPABASE_URL` and `SUPABASE_ANON_KEY` are set.
+
+---
+
 ## Deployment Topology
 
 | Environment | Host | Port | Entry |
@@ -111,12 +121,22 @@ app.py
 
 ---
 
+## Supabase Schema
+
+| Table | Purpose |
+|-------|---------|
+| `audit_trail` | Parallel write from audit_trail.py (RADV audit records) |
+
+Google Sheets is source of truth; Supabase receives fire-and-forget parallel writes when `SUPABASE_URL` and `SUPABASE_ANON_KEY` are set.
+
+---
+
 ## Phase 2 Hardening Checklist
 
 - [x] pyproject.toml (build, ruff, mypy, pytest)
-- [x] Type hints (audit_trail, audit_trail_ui, cloud_status_badge, suppression_banner, hitl_admin_view)
-- [x] Unit tests (tests/test_auditshield.py)
-- [x] CI workflow (.github/workflows/ci.yml)
+- [x] Type hints (audit_trail, cloud_status_badge, suppression_banner, hitl_admin_view)
+- [x] Unit tests (tests/test_auditshield.py) — 17 tests — 17 tests
+- [x] CI workflow (.github/workflows/ci.yml) — strict mode
 - [x] ARCHITECTURE.md
 
 ---
