@@ -205,6 +205,11 @@ def cloud_status_badge(app_variant: str = "auditshield", layout: str = "sidebar"
     )
 
 
+def auditshield_badge(mode: str = "strip") -> ui.div:
+    """AuditShield-specific badge alias. mode: 'strip' | 'sidebar'."""
+    return cloud_status_badge(app_variant="auditshield", layout=mode)
+
+
 def provenance_footer(app_variant: str = "auditshield") -> ui.div:
     """
     Sticky bottom footer — shows on every page.

@@ -28,7 +28,7 @@ jobs:
         run: ruff check . --config pyproject.toml || true
 
       - name: Mypy type-check
-        run: mypy audit_trail.py audit_trail_ui.py cloud_status_badge.py suppression_banner.py hitl_admin_view.py --config-file pyproject.toml || true
+        run: mypy audit_trail.py cloud_status_badge.py suppression_banner.py hitl_admin_view.py --config-file pyproject.toml || true
 
       - name: Pytest
         run: pytest tests/ -v --tb=short

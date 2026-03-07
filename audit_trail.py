@@ -43,6 +43,62 @@ AUDIT_COLUMNS = [
     "last_updated"
 ]
 
+# ── Audit Suppression (Phase 2 HITL) ─────────────────────────────────────────
+_SUPPRESSION_FILE: str = os.environ.get("AUDIT_SUPPRESSION_FILE", "audit_suppressions.json")
+_AUDIT_SUPPRESSIONS_CACHE: list[dict] | None = None
+
+
+def get_audit_suppressions() -> list[dict]:
+    """Return list of active audit suppression rules. Cached until file changes."""
+    global _AUDIT_SUPPRESSIONS_CACHE
+    if _AUDIT_SUPPRESSIONS_CACHE is not None:
+        return _AUDIT_SUPPRESSIONS_CACHE
+    if not os.path.exists(_SUPPRESSION_FILE):
+        return []
+    try:
+        with open(_SUPPRESSION_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        _AUDIT_SUPPRESSIONS_CACHE = data if isinstance(data, list) else []
+        return _AUDIT_SUPPRESSIONS_CACHE
+    except (json.JSONDecodeError, OSError):
+        return []
+
+
+def add_audit_suppression(audit_id: str, reason: str) -> dict:
+    """Add a suppression rule. Returns {success, audit_id, error}."""
+    global _AUDIT_SUPPRESSIONS_CACHE
+    rules = get_audit_suppressions()
+    if any(r.get("audit_id") == audit_id for r in rules):
+        return {"success": False, "audit_id": audit_id, "error": "Already suppressed"}
+    entry = {
+        "audit_id": audit_id,
+        "reason": reason,
+        "created": datetime.now(timezone(timedelta(hours=-5))).strftime("%Y-%m-%d %H:%M:%S"),
+    }
+    rules = list(rules) + [entry]
+    _AUDIT_SUPPRESSIONS_CACHE = rules
+    try:
+        with open(_SUPPRESSION_FILE, "w", encoding="utf-8") as f:
+            json.dump(rules, f, indent=2)
+        return {"success": True, "audit_id": audit_id}
+    except OSError as e:
+        return {"success": False, "audit_id": audit_id, "error": str(e)}
+
+
+def remove_audit_suppression(audit_id: str) -> dict:
+    """Remove a suppression rule. Returns {success, audit_id, error}."""
+    global _AUDIT_SUPPRESSIONS_CACHE
+    rules = [r for r in get_audit_suppressions() if r.get("audit_id") != audit_id]
+    if len(rules) == len(get_audit_suppressions()):
+        return {"success": False, "audit_id": audit_id, "error": "Not found"}
+    _AUDIT_SUPPRESSIONS_CACHE = rules
+    try:
+        with open(_SUPPRESSION_FILE, "w", encoding="utf-8") as f:
+            json.dump(rules, f, indent=2)
+        return {"success": True, "audit_id": audit_id}
+    except OSError as e:
+        return {"success": False, "audit_id": audit_id, "error": str(e)}
+
 
 # ─────────────────────────────────────────────────────────────
 # CONNECTION MANAGER
