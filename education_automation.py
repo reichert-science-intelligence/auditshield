@@ -4,9 +4,10 @@ Auto-identifies providers needing education, generates training materials,
 schedules sessions, and measures effectiveness.
 """
 import json
-import pandas as pd
-from typing import Dict, List, Optional
 from datetime import datetime, timedelta
+
+import pandas as pd
+
 from database import get_db_manager
 
 
@@ -86,9 +87,9 @@ class EducationAutomation:
 
     def create_education_session(self,
                                  provider_id: str,
-                                 focus_areas: List[str],
+                                 focus_areas: list[str],
                                  scheduled_date: str,
-                                 educator: Optional[str] = None) -> int:
+                                 educator: str | None = None) -> int:
         """
         Schedule a TPE education session for a provider
 
@@ -147,7 +148,7 @@ class EducationAutomation:
 
         return session_id
 
-    def _assign_materials(self, session_id: int, provider_id: str, focus_areas: List[str]):
+    def _assign_materials(self, session_id: int, provider_id: str, focus_areas: list[str]):
         """
         Auto-assign relevant education materials based on focus areas
         """
@@ -190,7 +191,7 @@ class EducationAutomation:
 
     def generate_customized_training_content(self,
                                             provider_id: str,
-                                            failure_patterns: List[str]) -> Dict:
+                                            failure_patterns: list[str]) -> dict:
         """
         Use AI to generate personalized training content
 
@@ -288,7 +289,7 @@ Format as JSON:
     def complete_education_session(self,
                                   session_id: int,
                                   attendance_status: str,
-                                  notes: Optional[str] = None):
+                                  notes: str | None = None):
         """
         Mark education session as completed and trigger follow-up
         """
@@ -320,7 +321,7 @@ Format as JSON:
 
         self.db.execute_query(update_query, (attendance_status, notes, session_id), fetch="none")
 
-    def measure_training_effectiveness(self, session_id: int) -> Dict:
+    def measure_training_effectiveness(self, session_id: int) -> dict:
         """
         Measure post-training validation rate improvement
 
@@ -399,7 +400,7 @@ Format as JSON:
             )
         }
 
-    def get_education_dashboard(self) -> Dict:
+    def get_education_dashboard(self) -> dict:
         """
         Get overview of all education activities
 

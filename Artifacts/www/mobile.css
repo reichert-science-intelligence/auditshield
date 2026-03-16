@@ -1,0 +1,236 @@
+/* Sprint 3 — Consolidated Mobile CSS (16 sections) */
+/* --brand-* variables throughout; dark mode overrides at bottom */
+
+/* === 1. Brand & Layout Variables === */
+:root {
+  --brand-primary: #40B5AD;
+  --brand-primary-hover: #35a098;
+  --brand-accent: #dc3545;
+  --brand-accent-shadow: rgba(220, 53, 69, 0.4);
+  --brand-gold: #ffc107;
+  --mobile-gap: 12px;
+  --touch-min: 44px;
+  --sidebar-drawer-width: min(85vw, 320px);
+  --surface: #fff;
+  --surface-muted: #f8f9fa;
+  --border: #dee2e6;
+  --text: #212529;
+  --text-muted: #6c757d;
+}
+
+/* === 2. Breakpoints (mobile-first) === */
+@media (max-width: 767px) {
+  :root { --mobile-gap: 12px; --touch-min: 44px; }
+}
+
+/* === 3. Sidebar Drawer (< 768px) === */
+@media (max-width: 767px) {
+  .bslib-sidebar-layout > .sidebar,
+  .offcanvas, [class*="sidebar"] {
+    width: var(--sidebar-drawer-width) !important;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease-out, box-shadow 0.25s;
+    z-index: 1050;
+    box-shadow: 4px 0 16px rgba(0,0,0,0.15);
+  }
+  .bslib-sidebar-layout.collapsed > .sidebar,
+  .offcanvas.show, [class*="sidebar"].show { transform: translateX(0); }
+}
+
+/* === 4. Main Content — full width on mobile === */
+@media (max-width: 767px) {
+  .bslib-sidebar-layout > .main {
+    width: 100% !important; max-width: 100%;
+    padding: var(--mobile-gap);
+  }
+}
+
+/* === 5. Sidebar Toggle — touch target === */
+@media (max-width: 767px) {
+  .sidebar-toggle, .navbar-toggler, [data-bs-toggle="offcanvas"] {
+    min-width: var(--touch-min); min-height: var(--touch-min); padding: 10px;
+  }
+}
+
+/* === 6. Nav Tabs — horizontal scroll === */
+@media (max-width: 767px) {
+  .nav-tabs, .navbar-nav {
+    flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; -ms-overflow-style: none;
+  }
+  .nav-tabs::-webkit-scrollbar, .navbar-nav::-webkit-scrollbar { display: none; }
+  .nav-tabs .nav-link, .navbar-nav .nav-link { white-space: nowrap; flex-shrink: 0; }
+}
+
+/* === 7. Tables — sticky first column === */
+@media (max-width: 767px) {
+  .dataTables_wrapper, table.dataTable {
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  table.dataTable thead th:first-child, table.dataTable tbody td:first-child {
+    position: sticky; left: 0; background: var(--surface); z-index: 1;
+    box-shadow: 2px 0 4px rgba(0,0,0,0.06);
+  }
+}
+
+/* === 8. Touch Targets — 44px minimum === */
+@media (max-width: 767px) {
+  .btn, .input-group .btn, input[type="submit"], input[type="button"], .form-check-label {
+    min-height: var(--touch-min); padding: 10px 16px;
+  }
+}
+
+/* === 9. iOS — suppress zoom on inputs === */
+@media (max-width: 767px) {
+  input, select, textarea { font-size: 16px !important; }
+}
+.rag-prompt-input { font-size: 16px !important; }
+
+/* === 10. Fluid Typography (clamp) === */
+@media (max-width: 767px) {
+  h1 { font-size: clamp(1.25rem, 4vw, 1.5rem); }
+  h2 { font-size: clamp(1.1rem, 3.5vw, 1.3rem); }
+  h3 { font-size: clamp(1rem, 3vw, 1.15rem); }
+  .metric-card h4, .card-header { font-size: 1rem; }
+}
+
+/* === 11. FAB Scaffold === */
+@media (max-width: 767px) {
+  body { padding-bottom: 80px !important; }
+  .main { padding-bottom: 24px; }
+}
+
+/* === 12. Overlay & Nav Component === */
+@media (max-width: 767px) {
+  .sidebar-backdrop, .offcanvas-backdrop { background: rgba(0,0,0,0.5); z-index: 1049; }
+  .nav-mobile-component { position: relative; }
+  .mobile-hamburger-wrap { position: fixed; top: 12px; left: 12px; z-index: 1060; }
+  .mobile-hamburger {
+    width: 44px; height: 44px; border: none; background: var(--brand-primary);
+    border-radius: 8px; display: flex; flex-direction: column; justify-content: center;
+    align-items: center; gap: 5px; cursor: pointer; transition: background 0.2s;
+  }
+  .mobile-hamburger:hover { background: var(--brand-primary-hover); }
+  .mobile-hamburger .hamburger-line {
+    width: 20px; height: 2px; background: #fff; border-radius: 1px;
+    transition: transform 0.3s, opacity 0.3s;
+  }
+  .mobile-hamburger.open .hamburger-line:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .mobile-hamburger.open .hamburger-line:nth-child(2) { opacity: 0; }
+  .mobile-hamburger.open .hamburger-line:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .mobile-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1049;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s;
+  }
+  .mobile-overlay.visible { opacity: 1; pointer-events: auto; }
+  .mobile-fab-wrap { position: fixed; bottom: 24px; right: 20px; z-index: 1055; }
+  .mobile-fab {
+    display: flex; align-items: center; justify-content: center;
+    min-width: 56px; min-height: 56px; padding: 0 20px;
+    background: var(--brand-accent); color: #fff !important; border-radius: 28px;
+    text-decoration: none; font-weight: 600; box-shadow: 0 4px 12px var(--brand-accent-shadow);
+  }
+  .mobile-fab:hover { color: #fff; opacity: 0.95; }
+  .mobile-fab.pulse { animation: fab-pulse 1.5s ease-in-out; }
+}
+@keyframes fab-pulse {
+  0%, 100% { box-shadow: 0 4px 12px var(--brand-accent-shadow); }
+  50% { box-shadow: 0 0 20px var(--brand-gold), 0 4px 12px var(--brand-accent-shadow); }
+}
+/* Gold pulse for Run Audit button (fab_wiring.py) */
+.fab-pulse-gold {
+  animation: fab-pulse-gold 0.6s ease-in-out 2;
+}
+@keyframes fab-pulse-gold {
+  0%, 100% { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+  50% { box-shadow: 0 0 16px var(--brand-gold), 0 0 24px rgba(255,193,7,0.5); }
+}
+@media (min-width: 768px) {
+  .nav-mobile-component .mobile-hamburger-wrap,
+  .nav-mobile-component .mobile-overlay,
+  .nav-mobile-component .mobile-fab-wrap { display: none !important; }
+}
+
+/* === 13. Sprint 2 — KPI Strip === */
+@media (max-width: 767px) {
+  .mobile-kpi-strip-wrap { overflow: hidden; margin-bottom: 12px; }
+  .mobile-kpi-strip {
+    display: flex; gap: 12px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    padding: 8px 0; scrollbar-width: none;
+  }
+  .mobile-kpi-strip::-webkit-scrollbar { display: none; }
+  .mobile-kpi-item {
+    flex-shrink: 0; min-width: 100px; padding: 12px 16px;
+    background: var(--surface-muted); border-radius: 8px; text-align: center;
+  }
+  .mobile-kpi-value { display: block; font-size: clamp(1rem, 3vw, 1.25rem); font-weight: 700; }
+  .mobile-kpi-label { font-size: 0.75rem; color: var(--text-muted); }
+}
+
+/* === 14. Sprint 2 — Collapsible Dashboard Card === */
+@media (max-width: 767px) {
+  .mobile-dashboard-card { margin-bottom: 12px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .mobile-card-header {
+    min-height: var(--touch-min); padding: 12px 16px; cursor: pointer;
+    background: var(--surface-muted); border-radius: 8px 8px 0 0;
+    display: flex; align-items: center; font-weight: 600;
+  }
+}
+
+/* === 15. Sprint 2 — Audit Stepper (dots: 44px touch via padding+content-box) === */
+@media (max-width: 767px) {
+  .mobile-audit-stepper .stepper-header { margin-bottom: 16px; }
+  .stepper-progress-bar { height: 4px; background: #e9ecef; border-radius: 2px; width: 0; transition: width 0.3s; }
+  .stepper-dots { display: flex; gap: 8px; margin-top: 8px; justify-content: center; }
+  .stepper-dot {
+    width: 10px; height: 10px; border-radius: 50%; background: #dee2e6;
+    padding: 17px; background-clip: content-box; box-sizing: content-box;
+    transition: background 0.2s; cursor: pointer;
+  }
+  .stepper-dot.active { background: var(--brand-primary); }
+  .stepper-step-panel { padding: 12px 0; }
+  .stepper-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; gap: 12px; }
+}
+@media (min-width: 768px) {
+  .mobile-audit-stepper .stepper-header, .mobile-audit-stepper .stepper-nav { display: none; }
+  .mobile-audit-stepper .stepper-step-panel { display: block !important; }
+}
+
+/* === 16. Sprint 2 — HEDIS Table & RAG === */
+@media (max-width: 767px) {
+  .hedis-table-mobile .mobile-filter-toggle-wrap { margin-bottom: 8px; }
+  .mobile-table-scroll-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 8px; }
+  .mobile-scroll-hint {
+    font-size: 0.75rem; color: var(--text-muted); text-align: center;
+    padding: 4px 0; transition: opacity 0.4s;
+  }
+  .mobile-scroll-hint.faded { opacity: 0; }
+  .hedis-table-mobile table thead th:nth-child(1), .hedis-table-mobile table thead th:nth-child(2),
+  .hedis-table-mobile table tbody td:nth-child(1), .hedis-table-mobile table tbody td:nth-child(2) {
+    position: sticky; left: 0; background: var(--surface); z-index: 1;
+    box-shadow: 2px 0 4px rgba(0,0,0,0.06);
+  }
+  .rag-prompt-panel-mobile, .rag-response-panel-mobile { width: 100%; }
+}
+.rag-response-panel-mobile {
+  min-height: 200px; overflow-y: auto; -webkit-overflow-scrolling: touch;
+}
+
+/* === Dark Mode Overrides === */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: #1a1a1a;
+    --surface-muted: #2d2d2d;
+    --border: #404040;
+    --text: #e9ecef;
+    --text-muted: #adb5bd;
+  }
+  @media (max-width: 767px) {
+    .mobile-kpi-item, .mobile-card-header { background: var(--surface-muted); }
+    table.dataTable thead th:first-child, table.dataTable tbody td:first-child,
+    .hedis-table-mobile table thead th:nth-child(1), .hedis-table-mobile table thead th:nth-child(2),
+    .hedis-table-mobile table tbody td:nth-child(1), .hedis-table-mobile table tbody td:nth-child(2) {
+      background: var(--surface);
+    }
+  }
+}

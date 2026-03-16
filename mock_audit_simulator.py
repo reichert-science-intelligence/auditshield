@@ -3,10 +3,10 @@
 Feature 1.2: Mock Audit Simulator
 Simulates CMS RADV audit process to predict sample selection, HCC failures, and financial impact.
 """
-import pandas as pd
+from datetime import datetime
+
 import numpy as np
-from typing import Dict, List, Tuple, Optional
-from datetime import datetime, timedelta
+import pandas as pd
 
 from database import get_db_manager
 
@@ -43,7 +43,7 @@ class MockAuditSimulator:
     def run_mock_audit(self,
                        contract_id: str = "DEFAULT",
                        contract_size: str = "medium_contract",
-                       year: int = 2026) -> Dict:
+                       year: int = 2026) -> dict:
         """
         Execute complete mock audit simulation
 
@@ -391,7 +391,7 @@ class MockAuditSimulator:
     def _calculate_financial_impact(self,
                                    error_rate: float,
                                    enrollees: pd.DataFrame,
-                                   predicted_failures: pd.DataFrame) -> Dict:
+                                   predicted_failures: pd.DataFrame) -> dict:
         """
         Calculate estimated CMS extrapolation and penalty
 
@@ -445,7 +445,7 @@ class MockAuditSimulator:
                                sample_enrollees: pd.DataFrame,
                                predicted_failures: pd.DataFrame,
                                error_rate: float,
-                               financial_impact: Dict) -> Dict:
+                               financial_impact: dict) -> dict:
         """Generate executive summary of mock audit results"""
 
         if not predicted_failures.empty:
@@ -486,7 +486,7 @@ class MockAuditSimulator:
 
     def _generate_recommendations(self,
                                  error_rate: float,
-                                 predicted_failures: pd.DataFrame) -> List[str]:
+                                 predicted_failures: pd.DataFrame) -> list[str]:
         """Generate actionable recommendations based on audit results"""
 
         recommendations = []

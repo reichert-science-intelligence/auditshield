@@ -256,153 +256,6 @@
             font-size: 0.9rem;
         }
 
-        /* Pricing Cards */
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            margin: 30px 0;
-        }
-
-        .pricing-card {
-            background: white;
-            border: 2px solid var(--border-light);
-            border-radius: 12px;
-            padding: 30px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .pricing-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--gradient-1);
-        }
-
-        .pricing-card:hover {
-            border-color: var(--accent-teal);
-            box-shadow: 0 10px 30px rgba(64, 181, 173, 0.2);
-            transform: translateY(-3px);
-        }
-
-        .pricing-card.featured {
-            border-color: var(--accent-teal);
-            box-shadow: 0 10px 40px rgba(64, 181, 173, 0.3);
-        }
-
-        .pricing-card.featured::before {
-            background: var(--accent-teal);
-        }
-
-        .pricing-tier {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: var(--accent-teal);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 10px;
-        }
-
-        .pricing-title {
-            font-family: 'Darker Grotesque', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--deep-navy);
-            margin-bottom: 15px;
-        }
-
-        .pricing-range {
-            font-family: 'Darker Grotesque', sans-serif;
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: var(--primary-blue);
-            margin-bottom: 15px;
-        }
-
-        .pricing-range span {
-            font-size: 1.2rem;
-            color: var(--text-light);
-            font-weight: 400;
-        }
-
-        .pricing-focus {
-            color: var(--text-medium);
-            font-size: 0.95rem;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-
-        .pricing-details {
-            list-style: none;
-            margin: 20px 0;
-        }
-
-        .pricing-details li {
-            padding: 8px 0 8px 28px;
-            position: relative;
-            color: var(--text-medium);
-            font-size: 0.9rem;
-        }
-
-        .pricing-details li::before {
-            content: '→';
-            position: absolute;
-            left: 0;
-            color: var(--accent-teal);
-            font-weight: 700;
-        }
-
-        /* Project Pricing */
-        .project-pricing {
-            background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
-            border-radius: 12px;
-            padding: 30px;
-            margin: 30px 0;
-        }
-
-        .project-pricing h3 {
-            font-family: 'Darker Grotesque', sans-serif;
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--deep-navy);
-            margin-bottom: 20px;
-        }
-
-        .project-pricing-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid var(--border-light);
-        }
-
-        .project-pricing-item:last-child {
-            border-bottom: none;
-        }
-
-        .project-name {
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-
-        .project-duration {
-            font-size: 0.9rem;
-            color: var(--text-light);
-        }
-
-        .project-cost {
-            font-family: 'Darker Grotesque', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-blue);
-        }
-
         /* Audience Segments */
         .audience-grid {
             display: grid;
@@ -577,10 +430,6 @@
                 padding: 12px;
             }
 
-            .pricing-grid {
-                grid-template-columns: 1fr;
-            }
-
             .cta-group {
                 flex-direction: column;
             }
@@ -702,65 +551,25 @@
             </table>
         </div>
 
-        <!-- Contract Pricing -->
+        <!-- Engagement Model -->
         <div class="content-section">
-            <h2 class="section-title">Contract Pay Ranges</h2>
-            <p class="section-subtitle">US Market - Full Stack AI Generative Specialist</p>
+            <h2 class="section-title">Strategic Advisory & Implementation Leadership</h2>
+            <p class="section-subtitle">Premium Healthcare AI Consulting — Engagement Terms Scoped to Complexity and Strategic Value</p>
 
             <p class="section-text">
-                For a <strong>Full Stack AI Generative specialist</strong>, rates are significantly higher than standard full-stack development because you are charging for <strong>domain expertise + security + AI proficiency</strong>.
+                At the <strong>Senior Industry Champion</strong> level, rates reflect domain expertise, security proficiency, and production-grade AI implementation capability. Engagement terms are scoped to project complexity and strategic value—the conversation determines the fit.
             </p>
 
-            <div class="pricing-grid">
-                <div class="pricing-card">
-                    <div class="pricing-tier">Mid-Level</div>
-                    <div class="pricing-title">Contractor</div>
-                    <div class="pricing-range">$125–$175<span>/hour</span></div>
-                    <div class="pricing-focus">
-                        <strong>Focus:</strong> Building UI, integrating APIs, basic prompt engineering
-                    </div>
-                    <ul class="pricing-details">
-                        <li>Frontend/backend integration</li>
-                        <li>API development</li>
-                        <li>Prompt engineering</li>
-                        <li>Application deployment</li>
-                    </ul>
-                </div>
-
-                <div class="pricing-card featured">
-                    <div class="pricing-tier">Senior / Lead</div>
-                    <div class="pricing-title">AI Architect</div>
-                    <div class="pricing-range">$200–$350+<span>/hour</span></div>
-                    <div class="pricing-focus">
-                        <strong>Focus:</strong> Vector database architecture, HIPAA compliance, model fine-tuning, LLMOps
-                    </div>
-                    <ul class="pricing-details">
-                        <li>System architecture design</li>
-                        <li>HIPAA/SOC2 compliance</li>
-                        <li>Model fine-tuning & optimization</li>
-                        <li>LLMOps & monitoring</li>
-                        <li>Security architecture</li>
-                    </ul>
-                </div>
+            <div class="market-shift">
+                <h3>What You Can Expect</h3>
+                <p>
+                    Strategic advisory for PoC through production implementation. Scope and investment are discussed directly—no published rate anchors. This approach is standard practice for senior consultants and allows us to tailor engagement terms to your specific needs.
+                </p>
             </div>
 
-            <div class="project-pricing">
-                <h3>Project-Based Pricing</h3>
-                <div class="project-pricing-item">
-                    <div>
-                        <div class="project-name">PoC (Proof of Concept)</div>
-                        <div class="project-duration">4–6 weeks of work</div>
-                    </div>
-                    <div class="project-cost">$20K – $50K</div>
-                </div>
-                <div class="project-pricing-item">
-                    <div>
-                        <div class="project-name">Production Implementation</div>
-                        <div class="project-duration">Long-term integration and scaling</div>
-                    </div>
-                    <div class="project-cost">$100K – $250K+</div>
-                </div>
-            </div>
+            <p class="section-text">
+                <strong>Contact:</strong> <a href="mailto:reichert.starguardai@gmail.com" style="color: var(--accent-teal); font-weight: 600;">reichert.starguardai@gmail.com</a>
+            </p>
         </div>
 
         <!-- Target Audiences -->
@@ -900,6 +709,9 @@
 
         <!-- Footer -->
         <div class="footer">
+            <p class="footer-text" style="margin-bottom: 10px;">
+                <a href="mailto:reichert.starguardai@gmail.com" style="color: var(--accent-teal); text-decoration: underline;">reichert.starguardai@gmail.com</a>
+            </p>
             <p class="footer-text">
                 <strong>Important Notice:</strong> All data shown in demonstrations are synthetic and generated for demonstration purposes only. No actual patient or member data is used.
             </p>

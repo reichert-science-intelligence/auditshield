@@ -9,9 +9,10 @@ pinned: false
 license: mit
 ---
 
-[![CI](https://github.com/reichert-science-intelligence/auditshield-live/actions/workflows/ci.yml/badge.svg)](https://github.com/reichert-science-intelligence/auditshield-live/actions/workflows/ci.yml)
+[![CI](https://github.com/reichert-science-intelligence/auditshield/actions/workflows/ci.yml/badge.svg)](https://github.com/reichert-science-intelligence/auditshield/actions/workflows/ci.yml)
+[![Mobile](https://img.shields.io/badge/mobile-Playwright-brightgreen)](https://github.com/reichert-science-intelligence/auditshield/actions)
 [![Python](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-17%20passed-brightgreen)](https://github.com/reichert-science-intelligence/auditshield-live/actions)
+[![Tests](https://img.shields.io/badge/tests-17%20passed-brightgreen)](https://github.com/reichert-science-intelligence/auditshield/actions)
 
 # AuditShield-Live 🏥
 
@@ -98,6 +99,22 @@ Machine learning model with 95% confidence intervals:
 - AI-powered documentation analysis
 - Forecasting model implementation
 - Healthcare ML applications
+
+---
+
+## 📱 Mobile Experience
+
+AuditShield is **responsive across phone, tablet, and desktop** with a dedicated mobile UX built over four sprints:
+
+| Breakpoint | Width | Layout |
+|------------|-------|--------|
+| Phone | &lt; 768px | Hamburger nav, FAB, sidebar drawer, horizontal KPI strip, collapsible cards |
+| Tablet | 768–1024px | Hybrid; sidebar drawer on narrow tablet |
+| Desktop | ≥ 1024px | Full sidebar, zero-touch layout |
+
+**Features**: Touch targets (44px min), iOS zoom suppression (16px inputs), fluid `clamp()` typography, sticky table columns, FAB tab switch with gold pulse on Run Audit. Tested via Playwright across 375×812, 768×1024, 1280×900 viewports.
+
+**Point-of-care use case**: Compliance leads can review provider scorecards, run mock audits, and track RADV timelines from tablets and phones at the point of care—without compromising the desktop workflow.
 
 ---
 

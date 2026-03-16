@@ -2,7 +2,6 @@
 HCC Reconciliation - Two-way ADD/DELETE recommendations
 Proactively identify missing HCCs and unsupported HCCs before CMS discovers them
 """
-from typing import Dict, List, Optional
 from datetime import datetime, timedelta
 
 from database import get_db_manager
@@ -26,7 +25,7 @@ class HCCReconciliation:
         self,
         lookback_months: int = 12,
         min_confidence: float = 85.0,
-    ) -> Dict:
+    ) -> dict:
         """
         Scan entire patient population for HCC reconciliation opportunities
 
@@ -56,7 +55,7 @@ class HCCReconciliation:
 
     def _find_missing_hccs(
         self, lookback_months: int, min_confidence: float
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """
         Find HCCs that should be captured but are missing
 
@@ -169,7 +168,7 @@ class HCCReconciliation:
 
     def _find_unsupported_hccs(
         self, lookback_months: int, min_confidence: float
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """
         Find HCCs that are currently coded but lack documentation support
 
@@ -235,13 +234,13 @@ class HCCReconciliation:
         self,
         reconciliation_type: str,
         patient_id: str,
-        encounter_id: Optional[str],
+        encounter_id: str | None,
         hcc_code: str,
         hcc_description: str,
         supporting_evidence: str,
         confidence_score: float,
         financial_impact: float,
-        provider_id: Optional[str] = None,
+        provider_id: str | None = None,
     ):
         """Save reconciliation recommendation to database"""
         param_placeholder = "%s" if self.db.db_type == "postgresql" else "?"
@@ -298,7 +297,7 @@ class HCCReconciliation:
         }
         return raf_weights.get(hcc_code, 0.20)
 
-    def get_reconciliation_dashboard(self) -> Dict:
+    def get_reconciliation_dashboard(self) -> dict:
         """Get reconciliation metrics for dashboard"""
         time_filter = (
             "created_at >= CURRENT_TIMESTAMP - INTERVAL '30 days'"

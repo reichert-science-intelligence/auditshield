@@ -3,6 +3,7 @@
 AuditShield Phase 1 - Centralized configuration
 """
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()

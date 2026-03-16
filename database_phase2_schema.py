@@ -6,7 +6,7 @@ Run this to add Phase 2 tables to existing database
 
 def add_phase2_schema(db_manager):
     """Add Phase 2 tables to existing database"""
-    
+
     if db_manager.db_type == "postgresql":
         serial_type = "SERIAL"
         text_array = "TEXT[]"
@@ -17,7 +17,7 @@ def add_phase2_schema(db_manager):
         text_array = "TEXT"
         timestamp_default = "CURRENT_TIMESTAMP"
         json_type = "TEXT"  # Store JSON as text in SQLite
-    
+
     schema_sql = f"""
     -- RADV Audit Tracking
     CREATE TABLE IF NOT EXISTS radv_audits (
@@ -153,7 +153,7 @@ def add_phase2_schema(db_manager):
     CREATE INDEX IF NOT EXISTS idx_education_provider ON education_sessions(provider_id);
     CREATE INDEX IF NOT EXISTS idx_audit_tasks ON audit_tasks(audit_id);
     """
-    
+
     # Execute schema creation
     with db_manager.get_connection() as conn:
         cursor = conn.cursor()
@@ -166,14 +166,14 @@ def add_phase2_schema(db_manager):
                         raise
         conn.commit()
         cursor.close()
-    
+
     print("Phase 2 schema added successfully.")
 
 
 # Run this to upgrade existing database
 if __name__ == "__main__":
     from database import get_db_manager
-    
+
     db = get_db_manager()
     add_phase2_schema(db)
     print("Phase 2 database schema installation complete!")

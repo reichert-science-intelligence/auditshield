@@ -1,4 +1,4 @@
-# AuditShield-Live CI — lint, type-check, pytest
+# AuditShield-Live CI — lint, type-check, pytest, mobile tests
 name: CI
 
 on:
@@ -31,4 +31,36 @@ jobs:
         run: mypy audit_trail.py cloud_status_badge.py suppression_banner.py hitl_admin_view.py --config-file pyproject.toml
 
       - name: Pytest
-        run: pytest tests/ -v --tb=short
+        run: pytest tests/ --ignore=tests/test_mobile.py -v --tb=short
+
+  mobile-tests:
+    runs-on: ubuntu-latest
+    needs: ci
+    env:
+      TEST_BASE_URL: ${{ secrets.TEST_BASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]" 2>/dev/null || pip install -r requirements.txt
+          pip install pytest-playwright
+          playwright install chromium
+
+      - name: Mobile tests (live HF Space)
+        if: env.TEST_BASE_URL != ''
+        run: |
+          pytest tests/test_mobile.py --base-url "$TEST_BASE_URL" -v --tb=short
+
+      - name: Mobile tests (local app)
+        if: env.TEST_BASE_URL == ''
+        run: |
+          python app_complete.py &
+          sleep 60
+          pytest tests/test_mobile.py --base-url http://localhost:7860 -v --tb=short

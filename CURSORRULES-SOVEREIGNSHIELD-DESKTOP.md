@@ -1,0 +1,109 @@
+# CURSORRULES — SovereignShield Desktop
+
+Source for `.cursorrules` install into `sovereignshield` (Desktop) repo.  
+GitHub: reichert-science-intelligence/sovereignshield
+
+## Rules
+
+# Engineering Hardening Standards — reichert-science-intelligence
+
+---
+
+## Prompt Level Recommendation Engine (Run First on Every Prompt)
+
+**Read the user's prompt prefix and content. Classify and respond:**
+
+### Signal Table (Domain-Specific)
+
+| Level | Signals (keywords/phrases) |
+|-------|----------------------------|
+| **HIGH** | SQL, schema, migrate, RLS, auth, OPA, Rego, Terraform, Supabase, batch remediation, HuggingFace, reactive chain, @reactive, credentials, API key, token, policy engine, compliance rule, audit trail, gap trail |
+| **MED** | refactor, new module, pyproject, dependency, test suite, CI/CD, workflow |
+| **LOW** | CSS, color, font, padding, margin, layout, style, button, modal, UI-only, copy change, typos |
+
+### Four Behaviors
+
+| Scenario | Claude response |
+|----------|------------------|
+| User prefix **[LOW]**, prompt is UI-only | Silent — levels match, proceed |
+| User prefix **[LOW]**, prompt has MED signals | Header: *"You should be at MED, not LOW."* → proceed or offer escalate |
+| User prefix **[LOW]**, prompt has HIGH signals | Header: *"You sent LOW, this reads as HIGH — escalate."* → then proceed or offer y/escalate |
+| User prefix **[HIGH]**, prompt is trivial (e.g. color change) | Header: *"Downgrade to LOW recommended — saves tokens"* → then proceed |
+| **No prefix** | State detected level and proceed — no waiting |
+
+The recommendation fires on the first read of every prompt, before any code is written.
+
+---
+
+After every feature phase ships, run the Hardening Sprint before starting the next phase.
+
+---
+
+## ALWAYS
+
+- Use pyproject.toml, not requirements.txt alone
+- Add type hints to all public functions
+- Separate business logic from Shiny reactive logic
+- Write minimum 3 unit tests per new module
+- Keep ARCHITECTURE.md current
+
+---
+
+## NEVER
+
+- Embed structural refactoring inside a feature sprint
+- Merge Supabase schema changes without updating ARCHITECTURE.md
+- Ship a new module without at least one unit test
+- Use relative import hacks — fix the package structure instead
+
+---
+
+## Architecture Patterns
+
+### Three-Repo Layout
+
+| Repo | Path | Purpose |
+|------|------|---------|
+| auditshield | Artifacts/project/auditshield/ | RADV Audit Defense Platform |
+| starguard-desktop | Artifacts/project/auditshield/starguard-desktop/ | MA Intelligence (Desktop) |
+| starguard-mobile | Artifacts/project/auditshield/starguard-mobile/ | MA Intelligence (Mobile) |
+
+### Shiny Module Requirements
+
+- **app.py** is the main entry; all modules are imported and wired in server/ui
+- **Business logic** lives in standalone modules (audit_trail, hedis_gap_trail, etc.)
+- **Reactive logic** stays in server handlers; no business rules in @reactive
+- **Module pattern**: `module_ui()` for UI, `module_server()` for server, `module_server` id for `@module_ui`
+- **State**: Use `@reactive.Calc` for derived data; avoid global mutable state
+
+### Supabase Standards
+
+- **Source of truth**: Google Sheets. Supabase is parallel write only (fire-and-forget).
+- **Env vars**: `SUPABASE_URL`, `SUPABASE_ANON_KEY` — optional; silent on missing/failure.
+- **Tables**: `audit_trail` (AuditShield), `hedis_gap_trail` (Desktop/Mobile shared).
+- **Never** merge schema changes without updating ARCHITECTURE.md.
+
+### Recruiter Review Standards
+
+- **README**: Recruiter-facing summary, live demo link, tech stack, test badge.
+- **Cloud status badge**: 4-badge strip (GCP, Sheets, Supabase, Claude API) signals production readiness.
+- **About tab**: Professional bio, contact, portfolio links.
+- **No placeholder URLs**: Use real HuggingFace Space URLs in production.
+
+---
+
+## Live URLs (Production)
+
+| App | Demo | GitHub |
+|-----|------|--------|
+| AuditShield-Live | https://huggingface.co/spaces/rreichert/auditshield-live | https://github.com/reichert-science-intelligence/auditshield |
+| StarGuard Desktop | https://rreichert-starguard-desktop.hf.space | https://github.com/reichert-science-intelligence/starguard-desktop |
+| StarGuard Mobile | https://rreichert-starguardai.hf.space | https://github.com/reichert-science-intelligence/starguard-mobile |
+
+Short links: tinyurl.com/2vj79bem (AuditShield), tinyurl.com/24523hmy (LinkedIn).
+
+---
+
+## Reference
+
+Phase2-to-Hardening-Sprint-Checklist.md in repo root

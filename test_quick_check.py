@@ -27,7 +27,7 @@ def main():
     if not WWW_DIR.is_dir():
         errors.append(f"www/ directory not found at {WWW_DIR}")
     else:
-        print(f"OK: Artifacts/www/ directory exists")
+        print("OK: Artifacts/www/ directory exists")
 
     # 2. All 3 HTML files present
     for name in REQUIRED_FILES:
@@ -45,7 +45,7 @@ def main():
         if size < MIN_ABOUT_SIZE:
             errors.append(f"starguard_about.html is {size:,} bytes (expected >{MIN_ABOUT_SIZE:,})")
         else:
-            print(f"OK: starguard_about.html size check passed")
+            print("OK: starguard_about.html size check passed")
 
     # 4. HTML structure
     for name in REQUIRED_FILES:

@@ -4,11 +4,13 @@ Phase 1 integration tests
 """
 import os
 import tempfile
+
 import pytest
+
 from database import DatabaseManager
+from financial_calculator import FinancialImpactCalculator
 from meat_validator import MEATValidator
 from mock_audit_simulator import MockAuditSimulator
-from financial_calculator import FinancialImpactCalculator
 
 
 @pytest.fixture

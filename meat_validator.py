@@ -1,7 +1,6 @@
 # meat_validator.py
 import json
 import re
-from typing import Dict, List, Optional
 from datetime import datetime
 
 from app_config import get_anthropic_client
@@ -14,7 +13,7 @@ class MEATValidator:
     with self-correcting validation loops
     """
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         self.client = get_anthropic_client(api_key=api_key)
         self.model = "claude-sonnet-4-20250514"
 
@@ -36,7 +35,7 @@ class MEATValidator:
                                    hcc_code: str,
                                    diagnosis: str,
                                    documentation: str,
-                                   encounter_date: str) -> Dict:
+                                   encounter_date: str) -> dict:
         """
         Core validation function with self-correcting loops
 
@@ -87,7 +86,7 @@ class MEATValidator:
                               documentation: str,
                               encounter_date: str,
                               is_second_pass: bool = False,
-                              first_result: Optional[Dict] = None) -> Dict:
+                              first_result: dict | None = None) -> dict:
         """Execute Claude validation with structured output"""
 
         system_prompt = """You are a certified risk adjustment coder (CRC) performing CMS RADV audit validation.
@@ -243,7 +242,7 @@ Analyze this documentation and provide your assessment in this exact JSON format
 
     def batch_validate_provider(self,
                                 provider_id: str,
-                                lookback_months: int = 12) -> Dict:
+                                lookback_months: int = 12) -> dict:
         """
         Validate all HCCs for a provider and calculate scorecard metrics
 

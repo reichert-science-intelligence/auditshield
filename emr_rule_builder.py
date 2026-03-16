@@ -3,7 +3,6 @@ EMR Rule Builder - No-code validation rule builder for HCC documentation
 Creates hard stop and soft prompt rules that fire when M.E.A.T. elements are missing
 """
 import json
-from typing import Dict, List, Optional
 
 from database import get_db_manager
 
@@ -23,8 +22,8 @@ class EMRRuleBuilder:
         self,
         rule_name: str,
         rule_type: str,
-        hcc_codes: List[str],
-        required_elements: List[str],
+        hcc_codes: list[str],
+        required_elements: list[str],
         validation_message: str,
         severity: str = "WARNING",
     ) -> int:
@@ -89,7 +88,7 @@ class EMRRuleBuilder:
 
         return rule_id
 
-    def create_standard_rules(self) -> List[Dict]:
+    def create_standard_rules(self) -> list[dict]:
         """Create standard best-practice rules for common HCC categories"""
         standard_rules = [
             {
@@ -166,9 +165,9 @@ class EMRRuleBuilder:
 
     def evaluate_encounter_against_rules(
         self,
-        hcc_codes: List[str],
-        meat_elements: Dict[str, bool],
-    ) -> List[Dict]:
+        hcc_codes: list[str],
+        meat_elements: dict[str, bool],
+    ) -> list[dict]:
         """
         Evaluate an encounter against active rules
 
@@ -239,7 +238,7 @@ class EMRRuleBuilder:
         """
         self.db.execute_query(query, (rule_id,), fetch="none")
 
-    def get_rule_effectiveness_report(self) -> List[Dict]:
+    def get_rule_effectiveness_report(self) -> list[dict]:
         """Get report on which rules are most effective"""
         query = """
         SELECT

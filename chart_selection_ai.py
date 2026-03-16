@@ -3,9 +3,10 @@ Chart Selection AI - AI-powered medical record selection for RADV audits
 Analyzes multiple encounters per enrollee and selects the best records for CMS submission.
 """
 import json
-import pandas as pd
-from typing import Dict, List, Optional
 from datetime import datetime
+
+import pandas as pd
+
 from database import get_db_manager
 
 
@@ -30,7 +31,7 @@ class ChartSelectionAI:
                                       audit_id: int,
                                       sample_id: int,
                                       enrollee_id: str,
-                                      hccs_to_validate: List[str]) -> pd.DataFrame:
+                                      hccs_to_validate: list[str]) -> pd.DataFrame:
         """
         Score all available medical records for an enrollee
 
@@ -115,7 +116,7 @@ class ChartSelectionAI:
 
         return df
 
-    def _score_single_encounter(self, encounter_data: Dict, required_hccs: List[str]) -> Dict:
+    def _score_single_encounter(self, encounter_data: dict, required_hccs: list[str]) -> dict:
         """
         Score a single encounter using multiple criteria
 
@@ -181,7 +182,7 @@ class ChartSelectionAI:
 
         return scores
 
-    def _assess_documentation_quality(self, documentation: Optional[str], hccs: List[Dict]) -> float:
+    def _assess_documentation_quality(self, documentation: str | None, hccs: list[dict]) -> float:
         """
         Use Claude to assess documentation quality
 

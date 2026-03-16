@@ -1,0 +1,128 @@
+# Phase 2 App Patches — Active Suppression + HITL Admin View
+# ─────────────────────────────────────────────────────────────
+# Deployment order: AuditShield first, then StarGuard Desktop, then StarGuard Mobile.
+# Adjust button IDs / input names if your actual IDs differ.
+# ─────────────────────────────────────────────────────────────
+
+## AUDITSHIELD (app.py)
+
+### Imports to add (after audit_trail_ui import):
+    from audit_trail import (
+        AuditTrailDB,
+        push_audit_record,
+        fetch_recent_audits,
+        update_audit_status,
+        get_audit_suppressions,
+        add_audit_suppression,
+        remove_audit_suppression,
+    )
+    from audit_trail_ui import audit_trail_panel
+    from suppression_banner import suppression_banner
+    from hitl_admin_view import hitl_admin_panel
+
+### Tab: 📋 Audit Trail — wrap with suppression banner:
+    # Tab 4: RADV Audit Trail (Google Sheets cloud persistence + Phase 2 suppression)
+    ui.nav_panel(
+        "📋 Audit Trail",
+        ui.div(
+            suppression_banner(app_type="audit"),
+            audit_trail_panel(),
+            style="padding: 20px;"
+        )
+    ),
+
+### Add Admin View tab (insert before About tab):
+    ui.nav_panel(
+        "⚙ Admin View",
+        ui.div(hitl_admin_panel(app_type="audit"), style="padding: 20px;")
+    ),
+
+### Server handlers to add (near audit trail handlers):
+    # HITL Admin — Audit Suppressions
+    @reactive.Effect
+    @reactive.event(input.btn_add_audit_suppression)
+    def _hitl_add_audit_suppression():
+        aid = (input.hitl_audit_id() or "").strip()
+        reason = (input.hitl_audit_reason() or "Manual").strip()
+        if not aid:
+            return
+        r = add_audit_suppression(aid, reason)
+        _hitl_audit_add_result.set(r)
+
+    @render.ui
+    def hitl_audit_add_result():
+        r = _hitl_audit_add_result()
+        if r is None: return ui.div()
+        if r.get("success"): return ui.div("✅ Added suppression", class_="audit-push-success")
+        return ui.div(f"❌ {r.get('error','')}", class_="audit-push-error")
+
+    @reactive.Effect
+    @reactive.event(input.btn_remove_audit_suppression)
+    def _hitl_remove_audit_suppression():
+        aid = (input.hitl_audit_remove_id() or "").strip()
+        if not aid: return
+        r = remove_audit_suppression(aid)
+        _hitl_audit_remove_result.set(r)
+
+    @render.ui
+    def hitl_audit_remove_result():
+        r = _hitl_audit_remove_result()
+        if r is None: return ui.div()
+        if r.get("success"): return ui.div("✅ Removed suppression", class_="audit-push-success")
+        return ui.div(f"❌ {r.get('error','')}", class_="audit-push-error")
+
+    @render.ui
+    def hitl_audit_rules_list():
+        input.btn_refresh_hitl_audit()
+        input.btn_add_audit_suppression()
+        input.btn_remove_audit_suppression()
+        rules = get_audit_suppressions()
+        if not rules: return ui.p("No suppression rules.", class_="text-muted")
+        return ui.div(
+            *[ui.div(ui.strong(r.get("audit_id","")), " — ", r.get("reason",""), class_="hitl-rule-row") for r in rules]
+        )
+
+### Reactive values to add (with other reactive values):
+    _hitl_audit_add_result = reactive.Value(None)
+    _hitl_audit_remove_result = reactive.Value(None)
+
+────────────────────────────────────────────────────────────────
+
+## STARGUARD DESKTOP (app.py)
+
+### Imports to add:
+    from hitl_admin_view import hitl_admin_panel
+    from intervention_optimizer import intervention_optimizer_panel, compute_priority_scores
+
+### Nav — add Admin View (near end of nav panels, before about/settings):
+    ui.nav_panel("⚙ Admin View", ui.div(hitl_admin_panel(app_type="gap"), style="padding: 20px;")),
+
+### HEDIS Gap panel — wrap suggestion render with suppression:
+    # If you have a gap table, it already uses fetch_hedis_gaps which applies suppression.
+    # Add intervention optimizer panel near hedis_gaps if desired:
+    ui.nav_panel("Intervention Optimizer", intervention_optimizer_panel(gap_db)),
+
+### Server handlers for HITL (gap suppressions):
+    # Use: btn_add_gap_suppression, btn_remove_gap_suppression, btn_refresh_hitl_gap
+    # Inputs: hitl_gap_id, hitl_gap_reason, hitl_gap_remove_id
+    # Outputs: hitl_gap_add_result, hitl_gap_remove_result, hitl_gap_rules_list
+    # Import: from hedis_gap_trail import get_gap_suppressions, add_gap_suppression, remove_gap_suppression
+
+────────────────────────────────────────────────────────────────
+
+## STARGUARD MOBILE (app.py)
+
+### Same as StarGuard Desktop — add hitl_admin_view import and nav_panel.
+### Input IDs: hitl_gap_id, hitl_gap_reason, hitl_gap_remove_id
+### Button IDs: btn_add_gap_suppression, btn_remove_gap_suppression, btn_refresh_hitl_gap
+
+────────────────────────────────────────────────────────────────
+
+## HARD GATE CHECKLIST (run before Phase 2 sign-off)
+
+1. [ ] AuditShield: Suppression banner appears when rules exist; Admin View adds/removes rules.
+2. [ ] Audit Trail table: suppressed audits do not appear.
+3. [ ] StarGuard Desktop: Admin View manages gap suppressions.
+4. [ ] StarGuard Mobile: Admin View manages gap suppressions.
+5. [ ] Gap tables: suppressed gaps do not appear.
+6. [ ] No console errors; all imports resolve.

@@ -9,9 +9,9 @@ This script:
 4. Validates all components
 """
 
+import random
 import sys
 from datetime import datetime, timedelta
-import random
 
 
 def initialize_complete_system():
@@ -265,7 +265,7 @@ def seed_comprehensive_demo_data(db):
             ON CONFLICT (provider_id) DO NOTHING
             """
         else:
-            provider_query = f"""
+            provider_query = """
             INSERT OR IGNORE INTO provider_meat_scores (
                 provider_id, provider_name, specialty, npi
             ) VALUES (?, ?, ?, ?)

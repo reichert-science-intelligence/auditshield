@@ -5,8 +5,6 @@ Processes encounters as they're documented with live M.E.A.T. validation
 import json
 import threading
 import time
-from typing import Dict, List, Optional
-from datetime import datetime
 
 from app_config import get_anthropic_client
 from database import get_db_manager
@@ -51,7 +49,7 @@ class RealtimeValidationEngine:
         patient_id: str,
         provider_id: str,
         encounter_date: str,
-        hcc_codes: List[str],
+        hcc_codes: list[str],
         documentation_text: str,
     ) -> int:
         """
@@ -212,8 +210,8 @@ class RealtimeValidationEngine:
             )
 
     def _generate_validation_alert(
-        self, hcc_code: str, result: Dict, provider_id: str
-    ) -> Dict:
+        self, hcc_code: str, result: dict, provider_id: str
+    ) -> dict:
         """Generate actionable alert for failed validation"""
         meat_elements = result.get("meat_elements", {})
         missing_elements = []
@@ -267,7 +265,7 @@ class RealtimeValidationEngine:
             fetch="none",
         )
 
-    def get_provider_live_feedback(self, provider_id: str) -> Dict:
+    def get_provider_live_feedback(self, provider_id: str) -> dict:
         """
         Get real-time feedback for provider during documentation session
 
@@ -362,7 +360,7 @@ class RealtimeValidationEngine:
         else:
             return f"Documentation needs improvement. Focus on {most_common_gap.upper()} - be specific about current management."
 
-    def get_validation_dashboard_metrics(self) -> Dict:
+    def get_validation_dashboard_metrics(self) -> dict:
         """Get real-time metrics for validation dashboard"""
         # Last 24 hours metrics
         time_filter = (

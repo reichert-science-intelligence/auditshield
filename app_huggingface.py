@@ -2,7 +2,6 @@
 Entry point for HuggingFace Spaces deployment
 Auto-initializes database on first run
 """
-import os
 from pathlib import Path
 
 # Use same path as database.py for SQLite

@@ -5,15 +5,15 @@ Integrates Phase 1 (Provider Scorecard, Mock Audit, Financial Impact),
 Phase 2 (RADV Command Center, Chart Selection AI, Education Tracker), and
 Phase 3 (Real-Time Validation, HCC Reconciliation, Compliance Forecast, Regulatory Intel, EMR Rules, Executive View).
 """
+import json
+from datetime import datetime, timedelta
 from pathlib import Path
-from shiny import App, render, ui, reactive
+
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from datetime import datetime, timedelta
-from textwrap import dedent
-import json
+from shiny import App, reactive, render, ui
 
 
 def format_date_mdy(date_value):
@@ -48,6 +48,8 @@ def create_footer():
             " | ",
             ui.a("Services", href="/starguard_services.html", target="_blank", style="color: #40B5AD; text-decoration: none;"),
             " | ",
+            ui.a("Request Trial", href="/request_trial.html", target="_blank", style="color: #40B5AD; text-decoration: none;"),
+            " | ",
             ui.a("GitHub", href="https://github.com/StarGuardAi", target="_blank", style="color: #40B5AD; text-decoration: none;"),
             " | ",
             ui.a("LinkedIn", href="https://www.linkedin.com/in/robert-reichert-423023302/", target="_blank", style="color: #40B5AD; text-decoration: none;"),
@@ -61,28 +63,87 @@ def create_footer():
 
 
 # Phase 1 Imports
-from meat_validator import MEATValidator
-from database import get_db_manager
-from mock_audit_simulator import MockAuditSimulator
-from financial_calculator import FinancialImpactCalculator
-
-# Phase 2 Imports
-from radv_command_center import RADVCommandCenter
 from chart_selection_ai import ChartSelectionAI
-from education_automation import EducationAutomation
-
-# Phase 3 Imports
-from realtime_validation import RealtimeValidationEngine
-from hcc_reconciliation import HCCReconciliation
 from compliance_forecasting import ComplianceForecaster
-from regulatory_intelligence import RegulatoryIntelligence
-from emr_rule_builder import EMRRuleBuilder
 from dashboard_manager import DashboardManager
-from avatar_base64 import AVATAR_BASE64
+from database import get_db_manager
 
 # Add Phase 2 & Phase 3 schema to database
 from database_phase2_schema import add_phase2_schema
 from database_phase3_schema import add_phase3_schema
+from education_automation import EducationAutomation
+from emr_rule_builder import EMRRuleBuilder
+from financial_calculator import FinancialImpactCalculator
+from hcc_reconciliation import HCCReconciliation
+from meat_validator import MEATValidator
+from mock_audit_simulator import MockAuditSimulator
+
+# Phase 2 Imports
+from radv_command_center import RADVCommandCenter
+
+# Sprint 1–3: Mobile CSS, hamburger nav, FAB wiring
+from ui.fab_wiring import fab_wiring_script
+from ui.mobile_badge import mobile_badge
+from ui.nav_mobile import nav_mobile_ui
+
+# Phase 3 Imports
+from realtime_validation import RealtimeValidationEngine
+from regulatory_intelligence import RegulatoryIntelligence
+
+# Stage 4: starguard-core auth + HCC (Week 3) — Phase 17: async in production
+from starguard_core.auth import (
+    UPGRADE_URL,
+    capture_lead,
+    get_tier_config,
+    increment_usage,
+    is_feature_enabled,
+    validate_api_key,
+)
+from starguard_core.hcc import run_compound_analysis
+
+APP_NAME = "AuditShield-Live"
+
+# Feature name for RADV gating (radv_calculator = Pro tier - Week 2)
+RADV_FEATURE = "radv_calculator"
+# Feature name for HCC scoring (hcc_scoring = Pro tier - Week 3)
+HCC_FEATURE = "hcc_scoring"
+
+
+async def check_access(api_key: str | None, feature: str) -> dict:
+    result = await validate_api_key(api_key)
+    tier_config = get_tier_config(api_key)
+    if not is_feature_enabled(feature, tier_config):
+        return {
+            "allowed": False,
+            "tier": result.tier.value,
+            "message": f"{feature} requires Pro tier or higher.",
+            "upgrade_url": UPGRADE_URL,
+        }
+    increment_usage(api_key, feature, APP_NAME)
+    return {
+        "allowed": True,
+        "tier": result.tier.value,
+        "message": getattr(result, "message", "Authorized"),
+    }
+
+
+async def handle_radv_request(api_key: str | None, user_email: str | None = None) -> dict:
+    """AuditShield-specific: Anonymous RADV requests route to capture, not hard wall."""
+    access = await check_access(api_key, RADV_FEATURE)
+    if not access["allowed"]:
+        if user_email:
+            capture_lead(email=user_email, source="auditshield_radv")
+        return {"status": "upgrade_required", "upgrade_url": UPGRADE_URL}
+    return {"status": "allowed", "tier": access["tier"]}
+
+
+async def handle_hcc_request(api_key: str | None) -> dict:
+    """Check HCC scoring (compound view) access. Pro tier required."""
+    access = await check_access(api_key, HCC_FEATURE)
+    if not access["allowed"]:
+        return {"status": "upgrade_required", "upgrade_url": UPGRADE_URL}
+    return {"status": "allowed", "tier": access["tier"]}
+
 
 # Initialize all components
 db = get_db_manager()
@@ -108,6 +169,7 @@ dashboard_mgr = DashboardManager()
 
 app_ui = ui.page_fluid(
     ui.tags.head(
+        ui.tags.link(href="mobile.css", rel="stylesheet"),
         ui.tags.style("""
             .risk-green { background-color: #d4edda; border-left: 4px solid #28a745; }
             .risk-yellow { background-color: #fff3cd; border-left: 4px solid #ffc107; }
@@ -134,6 +196,12 @@ app_ui = ui.page_fluid(
                 .navbar-toggler { display: none !important; }
             }
         """),
+        fab_wiring_script(
+            main_tabs_id="main_nav",
+            audit_tab_id="Mock Audit",
+            run_audit_btn_id="run_mock_audit",
+            fab_id="nav_mobile_fab",
+        ),
         ui.tags.script("""
             (function(){
                 'use strict';
@@ -175,12 +243,19 @@ app_ui = ui.page_fluid(
             })();
         """)
     ),
+    nav_mobile_ui(),
     ui.page_navbar(
         # ==================== EXECUTIVE / STRATEGIC ====================
         # Tab 1: Executive View (overview dashboard - start here)
         ui.nav_panel(
             "Executive View",
             ui.div(
+                ui.card(
+                    ui.card_header("Pro / Enterprise Access"),
+                    ui.input_text("api_key", "API Key", placeholder="pro-xxx or ent-xxx"),
+                    ui.p("Enter your API key to unlock RADV Command Center and Mock Audit.", class_="text-muted small"),
+                    class_="mb-3",
+                ),
                 ui.h2("Executive Dashboard"),
                 ui.p("High-level strategic metrics", class_="text-muted"),
                 ui.row(
@@ -197,6 +272,11 @@ app_ui = ui.page_fluid(
                 ui.card(
                     ui.card_header("Strategic Action Items"),
                     ui.output_ui("exec_action_items")
+                ),
+                ui.hr(),
+                ui.card(
+                    ui.card_header("HCC Compound View (Pro)"),
+                    ui.output_ui("exec_compound_view")
                 )
             )
         ),
@@ -557,7 +637,7 @@ app_ui = ui.page_fluid(
             )
         ),
 
-        title="AuditShield-Live - Phase 1+2+3",
+        title=ui.span("AuditShield-Live - Phase 1+2+3 ", mobile_badge(url="https://tinyurl.com/bdevpdz5", accent_color="#D4AF37")),
         id="main_nav",
         # navbar_options removed for HuggingFace Shiny compatibility (older version)
     ),
@@ -587,6 +667,7 @@ def server(input, output, session):
     exposure_data = reactive.Value({})
     scenario_results_data = reactive.Value({})
     executive_dashboard_data = reactive.Value({})
+    compound_analysis_data = reactive.Value(None)
     audit_status_data = reactive.Value(None)
     regulatory_updates = reactive.Value([])
     realtime_metrics = reactive.Value({})
@@ -597,6 +678,49 @@ def server(input, output, session):
 
     # Diagnostic: simple reactive test to verify reactive system works
     diagnostic_status = reactive.Value("Checking...")
+
+    # Stage 4: RADV lead capture state
+    _radv_lead_captured = reactive.Value(False)
+
+    def _get_api_key():
+        key = None
+        try:
+            key = (input.api_key() or "").strip() or None
+        except Exception:
+            pass
+        if not key and hasattr(session, "request") and session.request:
+            key = session.request.headers.get("X-API-Key") or session.request.query_params.get("api_key")
+        return key
+
+    def _radv_upgrade_ui(upgrade_url: str):
+        captured = _radv_lead_captured.get()
+        if captured:
+            return ui.div(
+                ui.p("Thanks! We'll be in touch.", class_="text-success"),
+                ui.a("Upgrade now", href=upgrade_url, target="_blank", class_="btn btn-primary mt-2"),
+                class_="audit-warning p-4 rounded",
+            )
+        return ui.div(
+            ui.h4("RADV requires Pro or Enterprise"),
+            ui.p("Enter your API key in Executive View, or request access below.", class_="text-muted"),
+            ui.a("Upgrade", href=upgrade_url, target="_blank", class_="btn btn-primary"),
+            ui.hr(),
+            ui.p("Request access:", class_="small"),
+            ui.input_text("radv_lead_email", "Email", placeholder="you@company.com"),
+            ui.input_action_button("radv_request_access", "Request Access", class_="btn btn-outline-primary mt-2"),
+            class_="audit-warning p-4 rounded",
+        )
+
+    @reactive.Effect
+    @reactive.event(input.radv_request_access)
+    def _capture_radv_lead():
+        try:
+            email = (input.radv_lead_email() or "").strip()
+            if email:
+                capture_lead(email=email, source="auditshield_radv")
+            _radv_lead_captured.set(True)
+        except Exception as e:
+            print(f"[RADV] Lead capture: {e}")
 
     def _refresh_active_audits():
         try:
@@ -1082,7 +1206,10 @@ def server(input, output, session):
     # Mock Audit - dynamic results based on contract size and year
     @reactive.Effect
     @reactive.event(input.run_mock_audit)
-    def run_audit_simulation():
+    async def run_audit_simulation():
+        radv_result = await handle_radv_request(_get_api_key())
+        if radv_result.get("status") == "upgrade_required":
+            return
         try:
             import random
             size = input.contract_size() or "medium_contract"
@@ -1136,7 +1263,10 @@ def server(input, output, session):
 
     @output
     @render.ui
-    def mock_audit_results():
+    async def mock_audit_results():
+        radv_result = await handle_radv_request(_get_api_key())
+        if radv_result.get("status") == "upgrade_required":
+            return _radv_upgrade_ui(radv_result.get("upgrade_url", UPGRADE_URL))
         try:
             results = mock_audit_results_data.get()
             summary = (results or {}).get("audit_summary") or {}
@@ -1364,8 +1494,11 @@ def server(input, output, session):
 
     @reactive.Effect
     @reactive.event(input.create_audit)
-    def create_new_audit():
+    async def create_new_audit():
         if not input.new_audit_notice_id() or not input.new_contract_id():
+            return
+        radv_result = await handle_radv_request(_get_api_key())
+        if radv_result.get("status") == "upgrade_required":
             return
         sample_size = max(35, min(200, int(input.sample_size_input() or 100)))
         sample_enrollees = []
@@ -1392,7 +1525,10 @@ def server(input, output, session):
 
     @output
     @render.ui
-    def audit_status_display():
+    async def audit_status_display():
+        radv_result = await handle_radv_request(_get_api_key())
+        if radv_result.get("status") == "upgrade_required":
+            return _radv_upgrade_ui(radv_result.get("upgrade_url", UPGRADE_URL))
         audits = active_audits.get()
         if not audits:
             return ui.div(ui.p("Create an audit or select one", class_="text-muted text-center p-5"))
@@ -2149,6 +2285,27 @@ def server(input, output, session):
         if not actions:
             actions.append("All metrics within acceptable ranges. Continue current monitoring.")
         return ui.div(ui.tags.ul(*[ui.tags.li(a) for a in actions]))
+
+    @output
+    @render.ui
+    async def exec_compound_view():
+        """HCC Compound View — RADV exposure × RAF gap rate → $2.3M prospect story (Pro tier)."""
+        hcc_result = await handle_hcc_request(_get_api_key())
+        if hcc_result.get("status") == "upgrade_required":
+            return ui.div(
+                ui.p("Enter a Pro API key above to unlock HCC Compound View.", class_="text-muted"),
+                ui.p("Compound score = RADV exposure × RAF documentation gap rate → $2.3M prospect opportunity.", class_="small text-muted"),
+            )
+        exp = exposure_data.get() or {}
+        annualized = exp.get("annualized_exposure", 850000) or 850000
+        val_rate = exp.get("current_validation_rate", 85.2) or 85.2
+        radv_score = annualized / 500_000
+        raf_gap_rate = (100 - val_rate) / 100
+        out = run_compound_analysis(radv_exposure_score=radv_score, raf_documentation_gap_rate=raf_gap_rate)
+        return ui.div(
+            ui.p(out["demo_narrative"], class_="mb-2"),
+            ui.p(f"Compound score: {out['compound_score']:.2f}", class_="small text-muted"),
+        )
 
 
 app_dir = Path(__file__).resolve().parent

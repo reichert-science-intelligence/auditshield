@@ -50,7 +50,7 @@ check_and_initialize()
 # Import main app AFTER initialization
 try:
     from app import app
-except Exception as e:
+except Exception:
     import traceback
     print("FATAL: Failed to import app")
     traceback.print_exc()

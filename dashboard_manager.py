@@ -3,7 +3,6 @@ Dashboard Manager - Role-based dashboard configurations
 Executive, Compliance, Provider, and Coder views
 """
 import json
-from typing import Dict, List, Optional
 
 from database import get_db_manager
 
@@ -26,8 +25,8 @@ class DashboardManager:
         self,
         dashboard_name: str,
         user_role: str,
-        widget_layout: Dict,
-        filter_defaults: Dict,
+        widget_layout: dict,
+        filter_defaults: dict,
     ) -> int:
         """Create or update dashboard configuration"""
         param_placeholder = "%s" if self.db.db_type == "postgresql" else "?"
@@ -58,10 +57,10 @@ class DashboardManager:
                 conn.commit()
                 return config_id
 
-    def get_executive_dashboard_data(self) -> Dict:
+    def get_executive_dashboard_data(self) -> dict:
         """Get high-level metrics for executive dashboard"""
-        from financial_calculator import FinancialImpactCalculator
         from compliance_forecasting import ComplianceForecaster
+        from financial_calculator import FinancialImpactCalculator
 
         calc = FinancialImpactCalculator()
         forecaster = ComplianceForecaster()
@@ -100,10 +99,10 @@ class DashboardManager:
             "dashboard_type": "EXECUTIVE",
         }
 
-    def get_compliance_dashboard_data(self) -> Dict:
+    def get_compliance_dashboard_data(self) -> dict:
         """Get operational metrics for compliance teams"""
-        from realtime_validation import RealtimeValidationEngine
         from hcc_reconciliation import HCCReconciliation
+        from realtime_validation import RealtimeValidationEngine
 
         validation_engine = RealtimeValidationEngine()
         reconciler = HCCReconciliation()
@@ -153,7 +152,7 @@ class DashboardManager:
             "dashboard_type": "COMPLIANCE",
         }
 
-    def get_provider_dashboard_data(self, provider_id: str) -> Dict:
+    def get_provider_dashboard_data(self, provider_id: str) -> dict:
         """Get personal performance metrics for individual provider"""
         from realtime_validation import RealtimeValidationEngine
 
@@ -204,7 +203,7 @@ class DashboardManager:
             "dashboard_type": "PROVIDER",
         }
 
-    def create_standard_dashboards(self) -> List[Dict]:
+    def create_standard_dashboards(self) -> list[dict]:
         """Create standard dashboard configurations"""
         dashboards = [
             {

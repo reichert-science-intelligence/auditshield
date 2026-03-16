@@ -1,6 +1,7 @@
 """Pytest tests for StarGuard About & Services integration."""
-import pytest
 from pathlib import Path
+
+import pytest
 
 APP_DIR = Path(__file__).resolve().parent.parent
 WWW_DIR = APP_DIR / "www"

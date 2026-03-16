@@ -3,10 +3,9 @@
 Feature 1.3: Financial Impact Calculator
 Real-time financial risk calculation, remediation ROI, and scenario analysis.
 """
-import pandas as pd
-import numpy as np
-from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
+
+import pandas as pd
 
 from database import get_db_manager
 
@@ -41,8 +40,8 @@ class FinancialImpactCalculator:
         self.training_cost_per_provider = 500.00
 
     def calculate_current_exposure(self,
-                                   contract_id: Optional[str] = None,
-                                   lookback_months: int = 12) -> Dict:
+                                   contract_id: str | None = None,
+                                   lookback_months: int = 12) -> dict:
         """
         Calculate current financial exposure from validation failures
 
@@ -104,8 +103,8 @@ class FinancialImpactCalculator:
         }
 
     def calculate_remediation_roi(self,
-                                  provider_ids: Optional[List[str]] = None,
-                                  target_validation_rate: float = 95.0) -> Dict:
+                                  provider_ids: list[str] | None = None,
+                                  target_validation_rate: float = 95.0) -> dict:
         """
         Calculate ROI from investing in provider education and auditing
 
@@ -202,7 +201,7 @@ class FinancialImpactCalculator:
     def calculate_star_rating_impact(self,
                                     current_star_rating: float,
                                     radv_error_rate: float,
-                                    total_members: int) -> Dict:
+                                    total_members: int) -> dict:
         """
         Calculate how RADV failures could impact Star Ratings and revenue
 
@@ -245,7 +244,7 @@ class FinancialImpactCalculator:
         }
 
     def scenario_analysis(self,
-                         scenarios: List[Dict]) -> pd.DataFrame:
+                         scenarios: list[dict]) -> pd.DataFrame:
         """
         Run multiple what-if scenarios
 
@@ -291,8 +290,8 @@ class FinancialImpactCalculator:
         return pd.DataFrame(results)
 
     def generate_executive_summary(self,
-                                   contract_id: Optional[str] = None,
-                                   lookback_months: int = 12) -> Dict:
+                                   contract_id: str | None = None,
+                                   lookback_months: int = 12) -> dict:
         """
         Generate comprehensive financial summary for executive reporting
         """

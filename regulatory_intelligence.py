@@ -3,7 +3,6 @@ Regulatory Intelligence - Agentic RAG for HCC/RADV regulatory monitoring
 Monitors CMS.gov, AAPC, and other sources for regulatory changes
 """
 import json
-from typing import Dict, List, Optional
 from datetime import datetime, timedelta
 
 from app_config import get_anthropic_client
@@ -34,7 +33,7 @@ class RegulatoryIntelligence:
             "CMS_MEMORANDA": "https://www.cms.gov/medicare/regulations-guidance/memoranda",
         }
 
-    def scan_regulatory_sources(self, days_back: int = 30) -> List[Dict]:
+    def scan_regulatory_sources(self, days_back: int = 30) -> list[dict]:
         """
         Scan regulatory sources for new updates
 
@@ -99,7 +98,7 @@ class RegulatoryIntelligence:
 
         return processed_updates
 
-    def _analyze_regulatory_impact(self, update: Dict) -> Dict:
+    def _analyze_regulatory_impact(self, update: dict) -> dict:
         """Use Claude to analyze regulatory impact and generate action items"""
         affected_str = (
             ", ".join(update["affected_hccs"])
@@ -144,7 +143,7 @@ Return ONLY valid JSON:
             analysis = json.loads(result_text)
             return analysis
 
-        except Exception as e:
+        except Exception:
             return {
                 "action_items": ["Review update and assess impact"],
                 "documentation_changes": "To be determined",
@@ -153,7 +152,7 @@ Return ONLY valid JSON:
                 "estimated_effort_hours": 20,
             }
 
-    def _save_regulatory_update(self, update: Dict) -> bool:
+    def _save_regulatory_update(self, update: dict) -> bool:
         """Save regulatory update to database. Returns True if inserted, False if duplicate."""
         param_placeholder = "%s" if self.db.db_type == "postgresql" else "?"
 
@@ -212,7 +211,7 @@ Return ONLY valid JSON:
         )
         return True
 
-    def get_unprocessed_updates(self) -> List[Dict]:
+    def get_unprocessed_updates(self) -> list[dict]:
         """Get regulatory updates that haven't been actioned yet"""
         query = """
         SELECT *
@@ -251,7 +250,7 @@ Return ONLY valid JSON:
 
         self.db.execute_query(query, (update_id,), fetch="none")
 
-    def get_regulatory_dashboard(self) -> Dict:
+    def get_regulatory_dashboard(self) -> dict:
         """Get regulatory intelligence dashboard metrics"""
         time_filter = (
             "update_date >= CURRENT_DATE - INTERVAL '90 days'"
@@ -301,6 +300,6 @@ if __name__ == "__main__":
         print(f"   Action Items: {len(update.get('action_items', []))}")
 
     dashboard = intel.get_regulatory_dashboard()
-    print(f"\nDashboard:")
+    print("\nDashboard:")
     print(f"   Total updates (90d): {dashboard['total_updates_90d']}")
     print(f"   Unprocessed: {dashboard['unprocessed_updates']}")

@@ -11,7 +11,7 @@ import os
 AVATAR_BASE64 = ""
 _path = os.path.join(os.path.dirname(__file__), "avatar_base64.txt")
 if os.path.isfile(_path):
-    with open(_path, "r") as f:
+    with open(_path) as f:
         AVATAR_BASE64 = f.read().strip()
 
 # Fallback: paste base64 here if not using avatar_base64.txt
