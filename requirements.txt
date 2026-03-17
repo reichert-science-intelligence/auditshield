@@ -1,5 +1,5 @@
 # Core dependencies
-shiny==0.7.1
+shiny>=1.0.0
 pandas==2.2.0
 numpy==1.26.3
 plotly==5.18.0
@@ -25,4 +25,4 @@ faker==22.6.0
 uvicorn==0.27.0
 
 # Stage 4: shared lib (auth, HCC, audit trail, badge)
-starguard-core[badge]
+starguard-core
