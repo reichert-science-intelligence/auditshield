@@ -101,6 +101,8 @@ from starguard_core.auth import (
 )
 from starguard_core.hcc import run_compound_analysis
 
+from auditshield_platform_integration import register_session, record_finding
+
 APP_NAME = "AuditShield-Live"
 
 # Feature name for RADV gating (radv_calculator = Pro tier - Week 2)
@@ -351,7 +353,7 @@ app_ui = ui.page_fluid(
                     ui.h5("Create New Audit"),
                     ui.input_text("new_audit_notice_id", "Audit Notice ID", placeholder="RADV-2026-H1234-001"),
                     ui.input_text("new_contract_id", "Contract ID", placeholder="H1234"),
-                    ui.input_date("notification_date", "Notification Date", value=datetime.now().strftime('%Y-%m-%d')),
+                    ui.input_text("notification_date", "Notification Date", placeholder="MM/DD/YYYY", value=datetime.now().strftime('%m/%d/%Y')),
                     ui.input_numeric("sample_size_input", "Sample Size", value=100, min=35, max=200),
                     ui.input_action_button("create_audit", "Create Audit", class_="btn-success w-100 mt-3"),
                     width=300
@@ -650,6 +652,12 @@ def server(input, output, session):
 
     # Initialization flag - prevents init from re-running and overwriting user data
     _initialized = reactive.Value(False)
+
+    try:
+        register_session(app_name="auditshield",
+                        session_id=getattr(session, "session_id", None))
+    except Exception:
+        pass
 
     # Reactive values
     provider_scores_data = reactive.Value(pd.DataFrame())
@@ -1495,33 +1503,54 @@ def server(input, output, session):
     @reactive.Effect
     @reactive.event(input.create_audit)
     async def create_new_audit():
-        if not input.new_audit_notice_id() or not input.new_contract_id():
-            return
-        radv_result = await handle_radv_request(_get_api_key())
-        if radv_result.get("status") == "upgrade_required":
-            return
-        sample_size = max(35, min(200, int(input.sample_size_input() or 100)))
-        sample_enrollees = []
-        for i in range(sample_size):
-            sample_enrollees.append({
-                'enrollee_id': f'ENR{i+1:04d}',
-                'enrollee_name': f'Patient {i+1}',
-                'date_of_birth': f'19{50+i%40}-{(i%12)+1:02d}-15',
-                'hccs_to_validate': ['HCC 36', 'HCC 226', 'HCC 280'][:((i % 3) + 1)],
-                'total_raf_weight': round(0.5 + (i % 10) * 0.2, 3)
-            })
-        notif_date = input.notification_date()
-        notif_str = notif_date.strftime('%Y-%m-%d') if hasattr(notif_date, 'strftime') else str(notif_date)
-        audit_id = command_center.create_audit_from_notice(
-            audit_notice_id=input.new_audit_notice_id(),
-            contract_id=input.new_contract_id(),
-            contract_name=f"Contract {input.new_contract_id()}",
-            audit_year=2025,
-            notification_date=notif_str,
-            sample_enrollees=sample_enrollees
-        )
-        selected_audit_id.set(audit_id)
-        _refresh_active_audits()
+        try:
+            if not (input.new_audit_notice_id() or "").strip() or not (input.new_contract_id() or "").strip():
+                ui.notification_show("Enter Audit Notice ID and Contract ID", type="warning")
+                return
+            radv_result = await handle_radv_request(_get_api_key())
+            if radv_result.get("status") == "upgrade_required":
+                ui.notification_show("RADV requires Pro or Enterprise. Add API key in Executive View.", type="warning")
+                return
+            sample_size = max(35, min(200, int(input.sample_size_input() or 100)))
+            sample_enrollees = []
+            for i in range(sample_size):
+                sample_enrollees.append({
+                    'enrollee_id': f'ENR{i+1:04d}',
+                    'enrollee_name': f'Patient {i+1}',
+                    'date_of_birth': f'19{50+i%40}-{(i%12)+1:02d}-15',
+                    'hccs_to_validate': ['HCC 36', 'HCC 226', 'HCC 280'][:((i % 3) + 1)],
+                    'total_raf_weight': round(0.5 + (i % 10) * 0.2, 3)
+                })
+            date_str = input.notification_date() or ""
+            try:
+                notif_dt = datetime.strptime(date_str.strip(), "%m/%d/%Y")
+                notif_str = notif_dt.strftime("%Y-%m-%d")
+            except ValueError:
+                notif_str = datetime.now().strftime("%Y-%m-%d")
+            audit_id = command_center.create_audit_from_notice(
+                audit_notice_id=input.new_audit_notice_id(),
+                contract_id=input.new_contract_id(),
+                contract_name=f"Contract {input.new_contract_id()}",
+                audit_year=2025,
+                notification_date=notif_str,
+                sample_enrollees=sample_enrollees
+            )
+            selected_audit_id.set(audit_id)
+            _refresh_active_audits()
+
+            try:
+                record_finding(
+                    source_app="auditshield",
+                    finding_type="hcc_flag",
+                    title=f"RADV Audit {audit_id}",
+                    description=f"Audit {input.new_audit_notice_id()} - {input.new_contract_id()}",
+                    severity="high" if sample_size > 100 else "medium",
+                    session_id=getattr(session, "session_id", None),
+                )
+            except Exception:
+                pass
+        except Exception as e:
+            ui.notification_show(f"Error creating audit: {str(e)}", type="error")
 
     @output
     @render.ui
