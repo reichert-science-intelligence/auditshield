@@ -23,3 +23,6 @@ faker==22.6.0
 
 # Server
 uvicorn==0.27.0
+
+# Stage 4: shared lib (auth, HCC, audit trail, badge)
+starguard-core[badge]
