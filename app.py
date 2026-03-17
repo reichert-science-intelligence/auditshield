@@ -5,6 +5,7 @@ Integrates Phase 1 (Provider Scorecard, Mock Audit, Financial Impact),
 Phase 2 (RADV Command Center, Chart Selection AI, Education Tracker), and
 Phase 3 (Real-Time Validation, HCC Reconciliation, Compliance Forecast, Regulatory Intel, EMR Rules, Executive View).
 """
+import asyncio
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -112,7 +113,7 @@ HCC_FEATURE = "hcc_scoring"
 
 
 async def check_access(api_key: str | None, feature: str) -> dict:
-    result = await validate_api_key(api_key)
+    result = await asyncio.to_thread(validate_api_key, api_key)
     tier_config = get_tier_config(api_key)
     if not is_feature_enabled(feature, tier_config):
         return {
