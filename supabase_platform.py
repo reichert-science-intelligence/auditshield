@@ -1,7 +1,8 @@
 """
 Platform Hub — Supabase client for platform_sessions and cross_app_findings.
 Shared by AuditShield, StarGuard, and SovereignShield integrations.
-Uses SUPABASE_URL + key from (in order): SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_KEY.
+Uses PLATFORM_SUPABASE_URL (platform hub project) when set, else SUPABASE_URL.
+Uses PLATFORM_SUPABASE_ANON_KEY when set, else SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_KEY.
 Schema: platform_sessions (app_name, created_at), cross_app_findings (status DEFAULT 'open').
 """
 from __future__ import annotations
@@ -19,9 +20,10 @@ def _get_client():
         return _client
     try:
         from supabase import create_client
-        url = os.environ.get("SUPABASE_URL")
+        url = os.environ.get("PLATFORM_SUPABASE_URL") or os.environ.get("SUPABASE_URL")
         key = (
-            os.environ.get("SUPABASE_ANON_KEY")
+            os.environ.get("PLATFORM_SUPABASE_ANON_KEY")
+            or os.environ.get("SUPABASE_ANON_KEY")
             or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
             or os.environ.get("SUPABASE_KEY")
         )
