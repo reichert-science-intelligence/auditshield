@@ -3,7 +3,7 @@
 **Sprint:** S30
 **Owner:** Robert Reichert (RSI Academy)
 **Triggered by:** 4th calibration respondent — "noticeable data governance/data quality emphasis across [all domains]"
-**Status:** Audit framework ready; execution pending
+**Status:** Audit framework ready; D6 target recalibrated 05/20/2026 per `CHDA_TAXONOMY.md`
 
 ## 1. Objective
 
@@ -38,7 +38,7 @@ Based on the 4th respondent's "across all domains" signal:
 | D3 | 30% | Reporting requires DQ posture (completeness, timeliness) |
 | D4 | 35% | Clinical data management is DQ-adjacent by nature |
 | D5 (MA) | 25% | Submissions (MMR/MOR/RAPS/EDPS/PDE) are DQ-heavy |
-| D6 | 35% | Governance/compliance domain — should be majority |
+| D6 | 20% | RSI Prep Extension layer (`CHDA_TAXONOMY.md`) — cross-cutting, not AHIMA governance-primary |
 
 Tunable after first audit pass.
 
