@@ -9,9 +9,17 @@
 - **HF Space SHA at capture:** 960428d
 - **Session state:** Cold — Chrome data cleared (All time, all 3 categories) + force-quit immediately prior to capture
 - **Trigger tap identified in dry-run (B.3):** **Start practice draw** button (CHDA Prep tab, Prep Store)
-- **Behavior observed:**
-  - First tap on **Start practice draw**: UI froze at top of start draw for ~[N] seconds; no draw/question content rendered
-  - Second tap on same button: UI unfroze; draw / first question rendered normally
-- **Reproducibility:** confirmed in dry-run (B.3) + capture (B.4)
 - **Video file:** `Artifacts/S29/issue-003-prefix-baseline.mp4`
+- **Video specs (verified):** 2.78 MB, 19.9 s, 1080×2340, h264
+- **Recording scope:** Captures **freeze only** (first tap → pressed button, no draw). **Second-tap unfreeze not in frame** (recording ended at ~19 s still frozen). Unfreeze characterized from dry-run (B.3) below.
+- **Frame timeline (verified):**
+  - **0 s:** Chrome on `rsi-academy.hf.space`, Prep Store → CHDA prep (Gemini screen-record overlay cosmetic; dismissed by ~6 s)
+  - **6–8 s:** CHDA prep, email-verify gate + domain filter; screen record active
+  - **14 s:** Random practice draw — 10 questions selected, custom count 15; **Start practice draw** in normal outlined state
+  - **16 s:** **Start practice draw tapped** — button pressed/greyed; **no draw renders** (freeze)
+  - **19 s:** Still frozen — button stuck pressed, no questions loaded; recording ends
+- **Behavior observed:**
+  - **In recording:** First tap on **Start practice draw** — button registers press state; reactive chain does not complete draw (sev-1 evidence)
+  - **Dry-run (B.3) only:** Second tap on same button unfreezes; draw / first question renders normally
+- **Reproducibility:** confirmed in dry-run (B.3) + capture (B.4); freeze on recording matches WebSocket-race diagnosis
 - **Diagnostic note:** Freeze surface is **`_chda_practice_start`** (`prep_chda_practice_start` input), not `_make_chda_pick`. See `Artifacts/S29/ISSUE-003_FIX_DESIGN.md`.
