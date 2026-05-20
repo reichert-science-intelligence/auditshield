@@ -1,15 +1,17 @@
 # ISSUE-003 Pre-Fix Baseline — Capture Metadata
 
-- **Captured:** [YYYY-MM-DD HH:MM ET]
-- **Device:** Android [manufacturer + model, e.g. Samsung Galaxy S24]
-- **Android version:** [e.g. 14 / API 34]
+- **Captured:** 2026-05-20 [HH:MM ET]
+- **Device:** Android [manufacturer + model]
+- **Android version:** [Settings → About phone → Android version]
 - **Browser:** Chrome [version — Settings → About Chrome]
-- **Network:** [Wi‑Fi SSID name OR cellular carrier + signal strength]
-- **URL:** https://rreichert-rsi-academy.hf.space/ → **Prep Store** → **CHDA Prep** tab (interactive practice; `/prep/chda` is marketing landing only)
-- **HF Space SHA at capture:** 960428d (or latest on HF main after D6 target commit)
-- **Session state:** Cold (Chrome site data cleared immediately prior; see Phase 2 Android steps)
+- **Network:** [Wi‑Fi SSID OR cellular carrier + signal]
+- **URL:** https://rreichert-rsi-academy.hf.space/ → **Prep Store** → **CHDA Prep** tab (not `/prep/chda` marketing page)
+- **HF Space SHA at capture:** 960428d
+- **Session state:** Cold — Chrome data cleared (All time, all 3 categories) + force-quit immediately prior to capture
+- **Trigger tap identified in dry-run (B.3):** **Start practice draw** button (CHDA Prep tab, Prep Store)
 - **Behavior observed:**
-  - Enter Stripe-unlock email if required, tap **Start practice draw**, then first **Next question** / answer pick: pane froze ~[N] sec, no question
-  - Second tap on same control: unfreeze, question rendered normally
-- **Reproducibility:** [confirmed N times / first try / intermittent]
-- **Video file:** `Artifacts/S29/issue-003-prefix-baseline.mp4` (or `.webm` if native recorder)
+  - First tap on **Start practice draw**: UI froze at top of start draw for ~[N] seconds; no draw/question content rendered
+  - Second tap on same button: UI unfroze; draw / first question rendered normally
+- **Reproducibility:** confirmed in dry-run (B.3) + capture (B.4)
+- **Video file:** `Artifacts/S29/issue-003-prefix-baseline.mp4`
+- **Diagnostic note:** Freeze surface is **`_chda_practice_start`** (`prep_chda_practice_start` input), not `_make_chda_pick`. See `Artifacts/S29/ISSUE-003_FIX_DESIGN.md`.
