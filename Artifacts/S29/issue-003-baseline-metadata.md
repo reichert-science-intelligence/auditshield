@@ -21,5 +21,5 @@
 - **Behavior observed:**
   - **In recording:** First tap on **Start practice draw** — button registers press state; reactive chain does not complete draw (sev-1 evidence)
   - **Dry-run (B.3) only:** Second tap on same button unfreezes; draw / first question renders normally
-- **Reproducibility:** confirmed in dry-run (B.3) + capture (B.4); freeze on recording matches WebSocket-race diagnosis
-- **Diagnostic note:** Freeze surface is **`_chda_practice_start`** (`prep_chda_practice_start` input), not `_make_chda_pick`. See `Artifacts/S29/ISSUE-003_FIX_DESIGN.md`.
+- **Reproducibility:** confirmed in dry-run (B.3) + capture (B.4); apparent freeze on empty-email tap (silent gate-fail)
+- **Diagnostic note (superseded 05/20/2026):** Original framing was WebSocket race; **actual cause** was ungated Start button + empty-email gate no-op. See closed record in `ISSUE-003_FIX_DESIGN.md` (`52d0b3f`).
